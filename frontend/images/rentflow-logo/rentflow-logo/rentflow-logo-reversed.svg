@@ -1,0 +1,13 @@
+<svg width="400" height="120" viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="120" rx="16" fill="#0F4C3A"/>
+  <!-- Icon mark (transparent bg) -->
+  <rect x="24" y="28" width="64" height="64" rx="13" fill="rgba(255,255,255,0.12)"/>
+  <path d="M36 76L36 55L56 40L76 55L76 76Z" fill="#FFFFFF"/>
+  <path d="M49 76L49 65A7 7 0 0 0 63 65L63 76Z" fill="#C8924A"/>
+  <circle cx="56" cy="50" r="3.5" fill="#C8924A"/>
+  <!-- Wordmark white -->
+  <text x="106" y="68" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="42" letter-spacing="-2" fill="#FFFFFF" font-weight="200">Rent</text>
+  <text x="208" y="68" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="42" letter-spacing="-2" fill="#FFFFFF" font-weight="700">Flow</text>
+  <!-- Tagline -->
+  <text x="107" y="86" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" letter-spacing="2.5" fill="rgba(255,255,255,0.5)" font-weight="400">PROPERTY MANAGEMENT · KENYA</text>
+</svg>

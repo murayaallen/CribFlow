@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RentFlow — Kenya's Property Management Platform</title>
+  <meta name="description" content="Automate rent, track tenants, and reconcile M-Pesa payments across every unit. Built for Kenyan landlords." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,700;1,9..144,800;1,9..144,900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+
+    :root{
+      --g900:#040f0a;--g800:#071f17;--g700:#0A2B1E;--g600:#0D3B28;
+      --g500:#0F4C3A;--g400:#1A6B53;--g300:#2A8A6E;--g200:#4CAF8A;
+      --gold:#D4A843;--gold-lt:#F5CC6E;--gold-dk:#A07830;
+      --white:#fff;--off-white:#F4FAF7;
+      --text-1:#FFFFFF;--text-2:rgba(255,255,255,.78);--text-3:rgba(255,255,255,.48);
+      --surface:rgba(255,255,255,.055);--surface-hov:rgba(255,255,255,.09);
+      --border:rgba(255,255,255,.1);--border-hi:rgba(255,255,255,.18);
+      --card:rgba(255,255,255,.05);--card-hov:rgba(255,255,255,.085);
+      --radius-sm:10px;--radius:16px;--radius-lg:24px;--radius-xl:32px;
+      --ease-out:cubic-bezier(0.22,1,0.36,1);
+      --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    body{
+      font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+      background:var(--g800);color:var(--text-2);
+      overflow-x:hidden;
+    }
+
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+    button{font-family:inherit;border:none;background:none;cursor:pointer}
+
+    .container{width:100%;max-width:1180px;margin:0 auto;padding:0 24px}
+    .section{padding:100px 0}
+    .section-sm{padding:64px 0}
+
+    h1,h2,h3,h4{color:var(--text-1);line-height:1.12;letter-spacing:-0.025em}
+    .serif{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:800}
+
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+      color:var(--gold);margin-bottom:16px;
+    }
+    .eyebrow-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0}
+
+    .btn{
+      display:inline-flex;align-items:center;gap:8px;
+      font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
+      padding:14px 26px;border-radius:var(--radius-sm);
+      transition:all .2s var(--ease-out);cursor:pointer;border:none;
+      letter-spacing:.01em;
+    }
+    .btn-primary{
+      background:linear-gradient(135deg,var(--g500),var(--g400));
+      color:#fff;
+      box-shadow:0 2px 0 rgba(0,0,0,.3),0 6px 20px rgba(15,76,58,.4),inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 0 rgba(0,0,0,.3),0 12px 32px rgba(15,76,58,.5),inset 0 1px 0 rgba(255,255,255,.12)}
+    .btn-primary:active{transform:translateY(0)}
+    .btn-outline{
+      background:transparent;color:var(--text-1);
+      border:1.5px solid var(--border-hi);
+    }
+    .btn-outline:hover{background:var(--surface-hov);border-color:rgba(255,255,255,.32)}
+    .btn-gold{
+      background:linear-gradient(135deg,var(--gold-dk),var(--gold),var(--gold-lt));
+      color:var(--g800);
+      box-shadow:0 2px 0 rgba(0,0,0,.2),0 8px 24px rgba(212,168,67,.35);
+    }
+    .btn-gold:hover{transform:translateY(-2px);box-shadow:0 4px 0 rgba(0,0,0,.2),0 14px 36px rgba(212,168,67,.45)}
+    .btn-lg{padding:18px 34px;font-size:15px;border-radius:14px}
+
+    #splash{
+      position:fixed;inset:0;background:var(--g800);z-index:9999;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      pointer-events:none;
+    }
+    #splash.out{animation:splash-out .6s var(--ease-out) forwards}
+    @keyframes splash-out{to{opacity:0;transform:scale(1.04)}}
+
+    #splash-icon{
+      width:88px;height:88px;
+      opacity:0;transform:scale(.5) translateY(16px);
+      animation:icon-pop .7s var(--ease-spring) .15s forwards;
+    }
+    @keyframes icon-pop{to{opacity:1;transform:scale(1) translateY(0)}}
+
+    #splash-wordmark{
+      display:flex;align-items:baseline;margin-top:16px;
+      opacity:0;transform:translateY(10px);
+      animation:fade-up .45s ease .8s forwards;
+    }
+    .w-rent{font-family:'Plus Jakarta Sans',sans-serif;font-size:34px;font-weight:300;color:rgba(255,255,255,.85);letter-spacing:-1px}
+    .w-flow{font-family:'Plus Jakarta Sans',sans-serif;font-size:34px;font-weight:800;color:#fff;letter-spacing:-1px}
+
+    #splash-tag{
+      font-size:9.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+      color:rgba(212,168,67,.8);margin-top:7px;
+      opacity:0;animation:fade-up .4s ease 1.05s forwards;
+    }
+    #splash-bar{
+      width:44px;height:2px;border-radius:2px;
+      background:rgba(212,168,67,.18);margin-top:30px;overflow:hidden;
+      opacity:0;animation:fade-up .3s ease 1.1s forwards;
+    }
+    #splash-fill{
+      height:100%;width:0;border-radius:2px;
+      background:linear-gradient(90deg,var(--gold-dk),var(--gold-lt));
+      animation:bar-fill 1.15s ease 1.15s forwards;
+    }
+    @keyframes fade-up{to{opacity:1;transform:translateY(0)}}
+    @keyframes bar-fill{to{width:100%}}
+
+    nav{
+      position:fixed;top:0;left:0;right:0;z-index:100;
+      padding:0 24px;transition:background .3s ease,backdrop-filter .3s ease,box-shadow .3s ease;
+    }
+    .nav-inner{
+      max-width:1180px;margin:0 auto;
+      height:68px;display:flex;align-items:center;gap:32px;
+    }
+    nav.scrolled{
+      background:rgba(7,31,23,.95);backdrop-filter:blur(20px);
+      box-shadow:0 1px 0 rgba(255,255,255,.07);
+    }
+    .nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+    .nav-logo-icon{width:32px;height:32px}
+    .nav-logo-text{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:#fff;letter-spacing:-.02em}
+    .nav-links{display:flex;align-items:center;gap:2px;margin-left:8px}
+    .nav-link{
+      padding:8px 14px;border-radius:8px;
+      font-size:13.5px;font-weight:500;color:rgba(255,255,255,.72);
+      transition:color .15s ease,background .15s ease;
+    }
+    .nav-link:hover{color:#fff;background:rgba(255,255,255,.07)}
+    .nav-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .nav-signin{
+      font-size:13.5px;font-weight:600;color:rgba(255,255,255,.8);
+      padding:8px 16px;border-radius:8px;transition:all .15s ease;
+    }
+    .nav-signin:hover{color:#fff;background:rgba(255,255,255,.08)}
+    .nav-cta{
+      font-size:13px;font-weight:700;
+      padding:9px 20px;border-radius:9px;
+      background:linear-gradient(135deg,var(--g500),var(--g400));
+      color:#fff;
+      box-shadow:0 1px 0 rgba(0,0,0,.2),0 4px 12px rgba(15,76,58,.4);
+      transition:all .18s ease;
+    }
+    .nav-cta:hover{transform:translateY(-1px);box-shadow:0 2px 0 rgba(0,0,0,.2),0 8px 20px rgba(15,76,58,.5)}
+    .hamburger{display:none;flex-direction:column;gap:5px;padding:8px;border-radius:8px;cursor:pointer;transition:background .15s}
+    .hamburger:hover{background:rgba(255,255,255,.08)}
+    .hamburger span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all .3s ease}
+    .mobile-menu{
+      display:none;position:fixed;top:68px;left:0;right:0;
+      background:rgba(7,31,23,.97);backdrop-filter:blur(24px);
+      border-top:1px solid var(--border);
+      padding:16px 24px 24px;z-index:99;
+      transform:translateY(-8px);opacity:0;
+      transition:all .25s var(--ease-out);pointer-events:none;
+    }
+    .mobile-menu.open{transform:translateY(0);opacity:1;pointer-events:auto;display:block}
+    .mobile-menu a{display:block;padding:14px 0;font-size:15px;font-weight:500;color:rgba(255,255,255,.8);border-bottom:1px solid var(--border)}
+    .mobile-menu a:last-child{border-bottom:none}
+
+    .hero{
+      min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      position:relative;overflow:hidden;padding:120px 24px 80px;
+    }
+    .hero-bg{
+      position:absolute;inset:0;z-index:0;
+      background:url('images/apartment.jpg') center center / cover no-repeat;
+    }
+    .hero-bg::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(160deg,rgba(4,15,10,.88) 0%,rgba(7,31,23,.82) 40%,rgba(10,43,30,.75) 70%,rgba(13,59,40,.88) 100%);
+    }
+    .hero-grain{
+      position:absolute;inset:0;z-index:1;opacity:.3;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      background-size:180px;
+    }
+    .hero-content{position:relative;z-index:2;text-align:center;max-width:860px;margin:0 auto}
+
+    .hero-badge{
+      display:inline-flex;align-items:center;gap:8px;
+      background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.28);
+      border-radius:100px;padding:7px 16px;margin-bottom:28px;
+      font-size:12px;font-weight:600;color:var(--gold-lt);letter-spacing:.04em;
+    }
+    .hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse-dot 2s ease-in-out infinite}
+    @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+    .hero h1{
+      font-size:clamp(46px,7.5vw,92px);
+      margin-bottom:24px;
+    }
+    .hero-sub{
+      font-size:clamp(16px,2.2vw,20px);color:rgba(255,255,255,.7);
+      line-height:1.65;max-width:560px;margin:0 auto 40px;font-weight:400;
+    }
+    .hero-actions{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+
+    .hero-stats{
+      display:flex;align-items:center;justify-content:center;gap:0;
+      margin-top:72px;
+      background:rgba(255,255,255,.06);
+      backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:var(--radius);
+      overflow:hidden;
+    }
+    .hero-stat{
+      flex:1;padding:20px 28px;text-align:center;
+      border-right:1px solid rgba(255,255,255,.08);
+    }
+    .hero-stat:last-child{border-right:none}
+    .hero-stat-n{
+      font-family:'Fraunces',serif;font-size:30px;font-weight:800;
+      color:#fff;line-height:1;font-style:italic;
+    }
+    .hero-stat-l{font-size:11px;font-weight:500;color:rgba(255,255,255,.45);margin-top:5px;text-transform:uppercase;letter-spacing:.07em}
+
+    .hero-scroll{
+      position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+      z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;
+    }
+    .hero-scroll span{font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+    .scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,rgba(255,255,255,.3),transparent);animation:scroll-bounce 2s ease-in-out infinite}
+    @keyframes scroll-bounce{0%,100%{transform:scaleY(1);opacity:.6}50%{transform:scaleY(.6);opacity:1}}
+
+    .ticker-wrap{
+      background:rgba(212,168,67,.08);border-top:1px solid rgba(212,168,67,.15);border-bottom:1px solid rgba(212,168,67,.15);
+      padding:14px 0;overflow:hidden;position:relative;
+    }
+    .ticker-wrap::before,.ticker-wrap::after{
+      content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;
+    }
+    .ticker-wrap::before{left:0;background:linear-gradient(to right,var(--g800),transparent)}
+    .ticker-wrap::after{right:0;background:linear-gradient(to left,var(--g800),transparent)}
+    .ticker{display:flex;gap:0;animation:ticker-scroll 32s linear infinite}
+    .ticker-item{
+      display:flex;align-items:center;gap:10px;
+      padding:0 28px;white-space:nowrap;
+      font-size:13px;font-weight:600;color:rgba(212,168,67,.75);letter-spacing:.04em;text-transform:uppercase;
+      flex-shrink:0;
+    }
+    .ticker-sep{width:4px;height:4px;border-radius:50%;background:rgba(212,168,67,.4);flex-shrink:0}
+    @keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+    .features-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+      background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;
+    }
+    .feat-card{
+      background:var(--card);padding:36px 32px;
+      transition:background .25s ease;position:relative;overflow:hidden;
+    }
+    .feat-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+      opacity:0;transition:opacity .25s ease;
+    }
+    .feat-card:hover{background:var(--card-hov)}
+    .feat-card:hover::before{opacity:1}
+    .feat-icon{
+      width:44px;height:44px;border-radius:12px;
+      background:linear-gradient(135deg,rgba(15,76,58,.4),rgba(42,138,110,.2));
+      border:1px solid rgba(15,76,58,.5);
+      display:flex;align-items:center;justify-content:center;
+      margin-bottom:20px;color:var(--g200);
+    }
+    .feat-icon svg{width:20px;height:20px}
+    .feat-card h3{font-size:16px;font-weight:700;color:var(--text-1);margin-bottom:8px;letter-spacing:-.01em}
+    .feat-card p{font-size:13.5px;color:var(--text-3);line-height:1.6;font-weight:400}
+
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+    .split.flip{direction:rtl}
+    .split.flip > *{direction:ltr}
+    .split-img{
+      position:relative;border-radius:var(--radius-lg);overflow:hidden;
+      aspect-ratio:4/3;
+    }
+    .split-img img{width:100%;height:100%;object-fit:cover}
+    .split-img::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(4,15,10,.3),transparent 60%);
+    }
+    .split-img-badge{
+      position:absolute;bottom:20px;left:20px;z-index:2;
+      background:rgba(4,15,10,.85);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.12);border-radius:12px;
+      padding:12px 16px;display:flex;align-items:center;gap:10px;
+    }
+    .split-img-badge-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2);animation:pulse-dot 2s ease-in-out infinite}
+    .split-img-badge span{font-size:12px;font-weight:600;color:rgba(255,255,255,.85)}
+    .split-text{padding:8px 0}
+    .split-text h2{font-size:clamp(32px,4vw,46px);margin-bottom:16px}
+    .split-text .lead{font-size:16px;color:var(--text-2);line-height:1.7;margin-bottom:32px}
+    .feature-list{display:flex;flex-direction:column;gap:16px}
+    .feature-list-item{display:flex;align-items:flex-start;gap:12px}
+    .fl-check{
+      width:22px;height:22px;border-radius:6px;flex-shrink:0;margin-top:1px;
+      background:linear-gradient(135deg,var(--g500),var(--g400));
+      display:flex;align-items:center;justify-content:center;
+    }
+    .fl-check svg{width:12px;height:12px;color:#fff}
+    .fl-text strong{display:block;font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px}
+    .fl-text span{font-size:13px;color:var(--text-3);line-height:1.5}
+
+    .stats-section{
+      background:linear-gradient(135deg,var(--g600) 0%,var(--g500) 50%,var(--g400) 100%);
+      position:relative;overflow:hidden;
+    }
+    .stats-section::before{
+      content:'';position:absolute;inset:0;
+      background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E") repeat;
+    }
+    .stats-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+      background:rgba(255,255,255,.12);border-radius:var(--radius-lg);
+      overflow:hidden;position:relative;z-index:1;
+    }
+    .stat-item{
+      background:rgba(0,0,0,.18);backdrop-filter:blur(8px);
+      padding:44px 32px;text-align:center;
+    }
+    .stat-n{
+      font-family:'Fraunces',serif;font-size:52px;font-weight:900;
+      color:#fff;line-height:1;font-style:italic;letter-spacing:-.03em;
+    }
+    .stat-l{font-size:13px;font-weight:500;color:rgba(255,255,255,.55);margin-top:8px;text-transform:uppercase;letter-spacing:.08em}
+
+    .mpesa-section{
+      background:var(--g700);position:relative;overflow:hidden;
+    }
+    .mpesa-section::before{
+      content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;
+      border-radius:50%;
+      background:radial-gradient(ellipse,rgba(212,168,67,.08) 0%,transparent 70%);
+    }
+    .mpesa-inner{
+      display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;
+      position:relative;z-index:1;
+    }
+    .mpesa-content h2{font-size:clamp(32px,4vw,46px);margin-bottom:16px}
+    .mpesa-content .lead{font-size:16px;line-height:1.7;color:var(--text-2);margin-bottom:32px}
+    .mpesa-visual{
+      background:rgba(255,255,255,.04);border:1px solid var(--border);
+      border-radius:var(--radius-lg);overflow:hidden;
+    }
+    .mpesa-img-wrap{aspect-ratio:16/10;overflow:hidden}
+    .mpesa-img-wrap img{width:100%;height:100%;object-fit:cover;filter:brightness(.9) saturate(1.1)}
+    .mpesa-card{
+      padding:24px;border-top:1px solid var(--border);
+      display:flex;align-items:center;gap:16px;
+    }
+    .mpesa-tag{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.22);
+      border-radius:100px;padding:5px 12px;
+      font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;
+      white-space:nowrap;flex-shrink:0;
+    }
+    .mpesa-card span{font-size:13px;color:var(--text-3);line-height:1.5}
+
+    .steps-section{background:var(--g800)}
+    .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:64px}
+    .step-card{
+      background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);
+      padding:40px 32px;position:relative;overflow:hidden;
+      transition:border-color .25s ease,background .25s ease;
+    }
+    .step-card:hover{border-color:rgba(15,76,58,.5);background:var(--card-hov)}
+    .step-num{
+      font-family:'Fraunces',serif;font-size:72px;font-weight:900;font-style:italic;
+      color:rgba(255,255,255,.05);position:absolute;top:16px;right:24px;line-height:1;
+      letter-spacing:-.04em;pointer-events:none;
+    }
+    .step-icon{
+      width:48px;height:48px;border-radius:14px;margin-bottom:24px;
+      background:linear-gradient(135deg,rgba(15,76,58,.5),rgba(42,138,110,.25));
+      border:1px solid rgba(42,138,110,.3);
+      display:flex;align-items:center;justify-content:center;color:var(--g200);
+    }
+    .step-icon svg{width:22px;height:22px}
+    .step-card h3{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--text-1)}
+    .step-card p{font-size:13.5px;color:var(--text-3);line-height:1.65}
+
+    .testimonial-section{
+      position:relative;overflow:hidden;
+    }
+    .testimonial-bg{
+      position:absolute;inset:0;
+      background:url('images/apartment 3.jpg') center 30% / cover no-repeat;
+    }
+    .testimonial-bg::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(4,15,10,.94),rgba(10,43,30,.9));
+    }
+    .testimonial-content{position:relative;z-index:1;max-width:720px;margin:0 auto;text-align:center}
+    .stars{display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:24px}
+    .stars svg{width:18px;height:18px;fill:var(--gold);color:var(--gold)}
+    .quote-mark{
+      font-family:'Fraunces',serif;font-size:120px;font-weight:900;font-style:italic;
+      color:rgba(212,168,67,.15);line-height:.8;margin-bottom:-20px;
+    }
+    .quote-text{
+      font-family:'Fraunces',serif;font-style:italic;font-weight:700;
+      font-size:clamp(22px,3.5vw,32px);color:#fff;line-height:1.45;margin-bottom:32px;
+    }
+    .quote-author{display:flex;align-items:center;justify-content:center;gap:12px}
+    .quote-avatar{
+      width:44px;height:44px;border-radius:50%;
+      background:linear-gradient(135deg,var(--gold-dk),var(--gold));
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;font-weight:800;color:var(--g800);flex-shrink:0;
+    }
+    .quote-name{font-size:14px;font-weight:700;color:#fff}
+    .quote-role{font-size:12px;color:rgba(255,255,255,.45);margin-top:2px}
+
+    .pricing-section{background:var(--g800)}
+    .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:64px}
+    .price-card{
+      background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);
+      padding:36px 32px;position:relative;transition:transform .25s var(--ease-out),border-color .25s ease;
+    }
+    .price-card:hover{transform:translateY(-4px)}
+    .price-card.featured{
+      background:linear-gradient(160deg,rgba(15,76,58,.25),rgba(15,76,58,.1));
+      border-color:rgba(42,138,110,.35);
+    }
+    .price-card.featured::before{
+      content:'';position:absolute;inset:-1px;border-radius:var(--radius-lg);
+      background:linear-gradient(135deg,rgba(42,138,110,.4),transparent 60%);z-index:-1;
+    }
+    .price-badge{
+      display:inline-block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+      padding:4px 10px;border-radius:100px;margin-bottom:20px;
+      background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--g800);
+    }
+    .price-name{font-size:15px;font-weight:700;color:var(--text-1);margin-bottom:8px}
+    .price-amt{
+      font-family:'Fraunces',serif;font-size:52px;font-weight:900;font-style:italic;
+      color:#fff;line-height:1;letter-spacing:-.03em;margin-bottom:6px;
+    }
+    .price-amt span{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:400;color:var(--text-3);font-style:normal;letter-spacing:0}
+    .price-sub{font-size:13px;color:var(--text-3);margin-bottom:28px}
+    .price-divider{height:1px;background:var(--border);margin-bottom:24px}
+    .price-features{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+    .price-feat{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-2)}
+    .price-feat svg{width:15px;height:15px;color:var(--g200);flex-shrink:0}
+    .price-feat.muted{color:var(--text-3)}
+    .price-feat.muted svg{color:var(--text-3)}
+
+    .faq-section{background:var(--g700)}
+    .faq-list{max-width:720px;margin:64px auto 0;display:flex;flex-direction:column;gap:1px;
+      border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+    .faq-item{background:var(--card)}
+    .faq-q{
+      width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;
+      padding:22px 28px;text-align:left;
+      font-size:15px;font-weight:600;color:var(--text-1);
+      cursor:pointer;transition:background .15s ease;border-bottom:1px solid transparent;
+    }
+    .faq-q:hover{background:var(--card-hov)}
+    .faq-q.open{border-bottom-color:var(--border)}
+    .faq-arrow{width:20px;height:20px;flex-shrink:0;color:var(--text-3);transition:transform .25s ease}
+    .faq-q.open .faq-arrow{transform:rotate(180deg)}
+    .faq-a{
+      font-size:14px;color:var(--text-3);line-height:1.7;
+      padding:0 28px;max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s ease;
+    }
+    .faq-a.open{max-height:200px;padding:20px 28px}
+
+    .cta-section{
+      background:linear-gradient(160deg,var(--g600) 0%,var(--g500) 60%,var(--g400) 100%);
+      position:relative;overflow:hidden;
+    }
+    .cta-section::before{
+      content:'';position:absolute;inset:0;
+      background:url('images/apartment 2.jpg') center / cover no-repeat;opacity:.12;
+    }
+    .cta-section::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(15,76,58,.7),rgba(26,107,83,.5));
+    }
+    .cta-content{position:relative;z-index:1;text-align:center;max-width:640px;margin:0 auto}
+    .cta-content h2{font-size:clamp(36px,5vw,58px);margin-bottom:16px}
+    .cta-content p{font-size:17px;color:rgba(255,255,255,.72);margin-bottom:40px;line-height:1.65}
+
+    footer{background:var(--g900);border-top:1px solid rgba(255,255,255,.06)}
+    .footer-inner{
+      max-width:1180px;margin:0 auto;padding:60px 24px 40px;
+      display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:48px;
+    }
+    .footer-brand{}
+    .footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .footer-logo img{width:28px;height:28px}
+    .footer-logo-name{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.02em}
+    .footer-tagline{font-size:13px;color:var(--text-3);line-height:1.6;max-width:200px}
+    .footer-col h4{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:16px}
+    .footer-col a{display:block;font-size:13.5px;color:rgba(255,255,255,.55);margin-bottom:10px;transition:color .15s ease}
+    .footer-col a:hover{color:#fff}
+    .footer-bottom{
+      max-width:1180px;margin:0 auto;
+      padding:20px 24px;
+      display:flex;align-items:center;justify-content:space-between;
+      border-top:1px solid rgba(255,255,255,.06);
+      font-size:12px;color:var(--text-3);
+    }
+
+    [data-reveal]{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease-out),transform .7s var(--ease-out)}
+    [data-reveal].revealed{opacity:1;transform:translateY(0)}
+    [data-reveal][data-delay="1"]{transition-delay:.1s}
+    [data-reveal][data-delay="2"]{transition-delay:.2s}
+    [data-reveal][data-delay="3"]{transition-delay:.3s}
+    [data-reveal][data-delay="4"]{transition-delay:.4s}
+    [data-reveal][data-delay="5"]{transition-delay:.5s}
+
+    .section-header{text-align:center;margin-bottom:16px}
+    .section-header h2{font-size:clamp(34px,4.5vw,54px);margin-bottom:12px}
+    .section-header p{font-size:16px;color:var(--text-3);max-width:520px;margin:0 auto;line-height:1.65}
+
+    @media(max-width:900px){
+      .nav-links,.nav-signin{display:none}
+      .hamburger{display:flex}
+      .features-grid{grid-template-columns:1fr 1fr}
+      .split{grid-template-columns:1fr}
+      .split.flip{direction:ltr}
+      .mpesa-inner{grid-template-columns:1fr}
+      .steps-grid{grid-template-columns:1fr}
+      .pricing-grid{grid-template-columns:1fr}
+      .stats-grid{grid-template-columns:1fr 1fr}
+      .footer-inner{grid-template-columns:1fr 1fr;gap:36px}
+      .hero-stats{flex-wrap:wrap}
+      .hero-stat{flex:1 0 40%;border:none;border-bottom:1px solid rgba(255,255,255,.08)}
+      .section{padding:72px 0}
+    }
+    @media(max-width:600px){
+      .features-grid{grid-template-columns:1fr}
+      .stats-grid{grid-template-columns:1fr 1fr}
+      .footer-inner{grid-template-columns:1fr;gap:32px}
+      .footer-bottom{flex-direction:column;gap:8px;text-align:center}
+    }
+  </style>
+</head>
+<body>
+
+<div id="splash">
+  <img id="splash-icon" src="/images/rentflow-logo/rentflow-logo/rentflow-icon-white.svg" alt="RentFlow" />
+  <div id="splash-wordmark">
+    <span class="w-rent">Rent</span><span class="w-flow">Flow</span>
+  </div>
+  <div id="splash-tag">Crafted for Kenya's landlords.</div>
+  <div id="splash-bar"><div id="splash-fill"></div></div>
+</div>
+
+<nav id="main-nav">
+  <div class="nav-inner">
+    <a href="/landing.html" class="nav-logo">
+      <img class="nav-logo-icon" src="/images/rentflow-logo/rentflow-logo/rentflow-icon-white.svg" alt="RentFlow" />
+      <span class="nav-logo-text">RentFlow</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#how-it-works" class="nav-link">How it works</a>
+      <a href="#pricing" class="nav-link">Pricing</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/auth.html" class="nav-signin">Sign in</a>
+      <a href="/auth.html" class="nav-cta">Get started free</a>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#features">Features</a>
+  <a href="#how-it-works">How it works</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#faq">FAQ</a>
+  <a href="/auth.html">Sign in</a>
+  <a href="/auth.html" style="color:var(--gold);font-weight:700">Get started free →</a>
+</div>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grain"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Built for Kenya's landlords
+    </div>
+    <h1 class="serif">Collect rent.<br/>Run your portfolio.</h1>
+    <p class="hero-sub">Automated billing. M-Pesa reconciliation. Live tenant balances. Everything you need — one calm dashboard.</p>
+    <div class="hero-actions">
+      <a href="/auth.html" class="btn btn-gold btn-lg">Start for free</a>
+      <a href="#features" class="btn btn-outline btn-lg">See how it works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-n" data-count="99.9">0</div>
+        <div class="hero-stat-l">% Uptime</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">256-bit</div>
+        <div class="hero-stat-l">Encryption</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n" data-count="500">0</div>
+        <div class="hero-stat-l">Landlords</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">M-Pesa</div>
+        <div class="hero-stat-l">Native</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<div class="ticker-wrap">
+  <div class="ticker">
+    <div class="ticker-item"><span class="ticker-sep"></span>Automated Billing</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>M-Pesa Reconciliation</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Water Meter Tracking</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Live Tenant Balances</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>PDF Receipts</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Portfolio Overview</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Late Fee Automation</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Multi-Property Support</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Automated Billing</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>M-Pesa Reconciliation</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Water Meter Tracking</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Live Tenant Balances</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>PDF Receipts</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Portfolio Overview</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Late Fee Automation</div>
+    <div class="ticker-item"><span class="ticker-sep"></span>Multi-Property Support</div>
+  </div>
+</div>
+
+<section class="section" id="features" style="background:var(--g700)">
+  <div class="container">
+    <div class="section-header" data-reveal>
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Platform Features</div>
+      <h2 class="serif">Everything in one place.</h2>
+      <p>Purpose-built for the Kenyan property market. No generic tools, no workarounds.</p>
+    </div>
+    <div class="features-grid" style="margin-top:56px">
+      <div class="feat-card" data-reveal data-delay="1">
+        <div class="feat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        </div>
+        <h3>Automated Billing</h3>
+        <p>One click. Every unit. Every month. Bills generated, sent, and tracked automatically.</p>
+      </div>
+      <div class="feat-card" data-reveal data-delay="2">
+        <div class="feat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+        </div>
+        <h3>M-Pesa First</h3>
+        <p>Payments reconcile automatically to the right tenant. Zero manual matching.</p>
+      </div>
+      <div class="feat-card" data-reveal data-delay="3">
+        <div class="feat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Live Balances</h3>
+        <p>Know who owes before they call. Real-time outstanding balances per unit.</p>
+      </div>
+      <div class="feat-card" data-reveal data-delay="1">
+        <div class="feat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 2a5 5 0 0 1 5 5v1H7V7a5 5 0 0 1 5-5zm7 7v1a5 5 0 0 1-10 0V9"/><path d="M12 15v7M8 22h8"/></svg>
+        </div>
+        <h3>Water Tracking</h3>
+        <p>Never dispute a water bill again. Monthly meter readings with auto-calculated charges.</p>
+      </div>
+      <div class="feat-card" data-reveal data-delay="2">
+        <div class="feat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <h3>Portfolio Overview</h3>
+        <p>Your entire property empire — occupancy, revenue, and arrears — one screen.</p>
+      </div>
+      <div class="feat-card" data-reveal data-delay="3">
+        <div class="feat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <h3>PDF Receipts</h3>
+        <p>Professional. Instant. Printable. Issue receipts in seconds with your business details.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--g800)">
+  <div class="container">
+    <div class="split">
+      <div class="split-img" data-reveal>
+        <img src="/images/apartment 2.jpg" alt="Property management" />
+        <div class="split-img-badge">
+          <span class="split-img-badge-dot"></span>
+          <span>Bills generated automatically</span>
+        </div>
+      </div>
+      <div class="split-text" data-reveal data-delay="2">
+        <div class="eyebrow"><span class="eyebrow-dot"></span>Billing Engine</div>
+        <h2 class="serif">Billing that runs itself.</h2>
+        <p class="lead">Stop chasing calculations. RentFlow generates accurate bills every month — rent, water, late fees, and carried-over balances — automatically.</p>
+        <div class="feature-list">
+          <div class="feature-list-item">
+            <div class="fl-check"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="fl-text">
+              <strong>Bulk generation</strong>
+              <span>Bill all tenants in one click — every month, every property.</span>
+            </div>
+          </div>
+          <div class="feature-list-item">
+            <div class="fl-check"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="fl-text">
+              <strong>Automatic late fees</strong>
+              <span>Set a grace period. Late fees apply themselves.</span>
+            </div>
+          </div>
+          <div class="feature-list-item">
+            <div class="fl-check"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="fl-text">
+              <strong>Balance carry-forward</strong>
+              <span>Previous arrears automatically roll into the next bill.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats-section section">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item" data-reveal>
+        <div class="stat-n"><span data-count="99.9" data-suffix="%">0</span></div>
+        <div class="stat-l">Platform Uptime</div>
+      </div>
+      <div class="stat-item" data-reveal data-delay="1">
+        <div class="stat-n"><span data-count="500" data-suffix="+">0</span></div>
+        <div class="stat-l">Active Landlords</div>
+      </div>
+      <div class="stat-item" data-reveal data-delay="2">
+        <div class="stat-n"><span data-count="50" data-prefix="KSh " data-suffix="M+">0</span></div>
+        <div class="stat-l">Rent Tracked</div>
+      </div>
+      <div class="stat-item" data-reveal data-delay="3">
+        <div class="stat-n"><span data-count="4.9" data-suffix="/5">0</span></div>
+        <div class="stat-l">Landlord Rating</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section mpesa-section">
+  <div class="container">
+    <div class="mpesa-inner">
+      <div class="mpesa-content" data-reveal>
+        <div class="eyebrow"><span class="eyebrow-dot"></span>M-Pesa Integration</div>
+        <h2 class="serif">Payments reconcile themselves.</h2>
+        <p class="lead">Tenants pay via M-Pesa paybill using their unit account number. RentFlow matches the payment to the right tenant — instantly. No calls, no confusion.</p>
+        <div class="feature-list">
+          <div class="feature-list-item">
+            <div class="fl-check"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="fl-text">
+              <strong>Auto-matching</strong>
+              <span>Account number maps directly to tenant unit.</span>
+            </div>
+          </div>
+          <div class="feature-list-item">
+            <div class="fl-check"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="fl-text">
+              <strong>Transaction codes stored</strong>
+              <span>Every M-Pesa reference captured and searchable.</span>
+            </div>
+          </div>
+          <div class="feature-list-item">
+            <div class="fl-check"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="fl-text">
+              <strong>Instant balance update</strong>
+              <span>Bill status updates the moment payment lands.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mpesa-visual" data-reveal data-delay="2">
+        <div class="mpesa-img-wrap">
+          <img src="/images/MPESA.jpg" alt="M-Pesa" />
+        </div>
+        <div class="mpesa-card">
+          <div class="mpesa-tag">M-Pesa Native</div>
+          <span>Paybill, STK push, and manual recording — all supported.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section steps-section" id="how-it-works">
+  <div class="container">
+    <div class="section-header" data-reveal>
+      <div class="eyebrow"><span class="eyebrow-dot"></span>How It Works</div>
+      <h2 class="serif">Up and running in minutes.</h2>
+      <p>No training required. No consultants. Just sign up and go.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card" data-reveal data-delay="1">
+        <div class="step-num">01</div>
+        <div class="step-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <h3>Add your properties</h3>
+        <p>Create properties and rooms in minutes. Set room names, types, and rent amounts once.</p>
+      </div>
+      <div class="step-card" data-reveal data-delay="2">
+        <div class="step-num">02</div>
+        <div class="step-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3>Onboard your tenants</h3>
+        <p>Add tenant details, lease dates, and deposits. Assign each to their unit. Done in seconds.</p>
+      </div>
+      <div class="step-card" data-reveal data-delay="3">
+        <div class="step-num">03</div>
+        <div class="step-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <h3>Let RentFlow run it</h3>
+        <p>Generate bills, track M-Pesa payments, and monitor your portfolio — all from one place.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section testimonial-section">
+  <div class="testimonial-bg"></div>
+  <div class="container">
+    <div class="testimonial-content" data-reveal>
+      <div class="stars">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <div class="quote-mark">"</div>
+      <p class="quote-text">Billing used to take me two days every month. Now it takes two minutes. RentFlow is the tool I didn't know I needed.</p>
+      <div class="quote-author">
+        <div class="quote-avatar">AM</div>
+        <div>
+          <div class="quote-name">Allen Muraya</div>
+          <div class="quote-role">Property Investor · 28 units · Nairobi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section pricing-section" id="pricing">
+  <div class="container">
+    <div class="section-header" data-reveal>
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Pricing</div>
+      <h2 class="serif">Simple. Transparent.</h2>
+      <p>Start free. Scale as your portfolio grows. No hidden fees, ever.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card" data-reveal data-delay="1">
+        <div class="price-name">Free</div>
+        <div class="price-amt">KSh 0<span>/mo</span></div>
+        <div class="price-sub">For landlords just getting started.</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Up to 2 properties</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>10 rooms per property</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>M-Pesa tracking</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>PDF receipts</div>
+          <div class="price-feat muted"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Email reminders</div>
+          <div class="price-feat muted"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reports & analytics</div>
+        </div>
+        <a href="/auth.html" class="btn btn-outline" style="width:100%;justify-content:center">Get started free</a>
+      </div>
+      <div class="price-card featured" data-reveal data-delay="2">
+        <div class="price-badge">Most Popular</div>
+        <div class="price-name">Basic</div>
+        <div class="price-amt">KSh 999<span>/mo</span></div>
+        <div class="price-sub">For growing landlords with multiple properties.</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Up to 10 properties</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>50 rooms per property</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>M-Pesa + email notifications</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>PDF receipts</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Automated reminders</div>
+          <div class="price-feat muted"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Advanced reports</div>
+        </div>
+        <a href="/auth.html" class="btn btn-gold" style="width:100%;justify-content:center">Start Basic plan</a>
+      </div>
+      <div class="price-card" data-reveal data-delay="3">
+        <div class="price-name">Pro</div>
+        <div class="price-amt">KSh 2,499<span>/mo</span></div>
+        <div class="price-sub">For serious investors and property managers.</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Unlimited properties</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Unlimited rooms</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Everything in Basic</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Advanced reports & analytics</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>SMS reminders</div>
+          <div class="price-feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Priority support</div>
+        </div>
+        <a href="/auth.html" class="btn btn-outline" style="width:100%;justify-content:center">Start Pro plan</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section faq-section" id="faq">
+  <div class="container">
+    <div class="section-header" data-reveal>
+      <div class="eyebrow"><span class="eyebrow-dot"></span>FAQ</div>
+      <h2 class="serif">Questions answered.</h2>
+    </div>
+    <div class="faq-list" data-reveal data-delay="1">
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>Do I need technical knowledge to use RentFlow?</span>
+          <svg class="faq-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">No. RentFlow is built for landlords, not developers. If you can use WhatsApp, you can use RentFlow.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>How does M-Pesa payment matching work?</span>
+          <svg class="faq-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">Each unit gets a unique account number (e.g. SRC-A1). When a tenant pays via paybill using that number, RentFlow automatically matches the transaction to their account and updates their balance.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>Can I manage multiple properties?</span>
+          <svg class="faq-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">Yes. RentFlow is built for multi-property portfolios. Add as many properties as your plan allows, each with their own rooms, tenants, and billing cycles.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>Is my data secure?</span>
+          <svg class="faq-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">Absolutely. RentFlow is built on Supabase with 256-bit encryption, row-level security, and regular automated backups. Your data is yours, always.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>Can I try it before committing?</span>
+          <svg class="faq-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">Yes — the Free plan is free forever. No credit card required. Upgrade only when you're ready to scale.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section cta-section">
+  <div class="cta-content" data-reveal>
+    <div class="eyebrow" style="justify-content:center"><span class="eyebrow-dot"></span>Get Started</div>
+    <h2 class="serif">Your portfolio deserves better.</h2>
+    <p>Join hundreds of Kenyan landlords who've replaced spreadsheets and WhatsApp with RentFlow.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="/auth.html" class="btn btn-gold btn-lg">Start for free today</a>
+      <a href="#pricing" class="btn btn-outline btn-lg" style="border-color:rgba(255,255,255,.25)">View pricing</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <img src="/images/rentflow-logo/rentflow-logo/rentflow-icon-white.svg" alt="RentFlow" />
+        <span class="footer-logo-name">RentFlow</span>
+      </div>
+      <p class="footer-tagline">Crafted for Kenya's landlords. Built to last.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h4>Account</h4>
+      <a href="/auth.html">Sign in</a>
+      <a href="/auth.html">Create account</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 RentFlow. All rights reserved.</span>
+    <span>Crafted for Kenya's landlords.</span>
+  </div>
+</footer>
+
+<script>
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    s.classList.add('out');
+    setTimeout(() => s.remove(), 650);
+  }, 2500);
+
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  }, { passive: true });
+
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  hamburger.addEventListener('click', () => {
+    const open = mobileMenu.classList.toggle('open');
+    const spans = hamburger.querySelectorAll('span');
+    spans[0].style.transform = open ? 'rotate(45deg) translate(5px,5px)' : '';
+    spans[1].style.opacity = open ? '0' : '1';
+    spans[2].style.transform = open ? 'rotate(-45deg) translate(5px,-5px)' : '';
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobileMenu.classList.remove('open');
+    const spans = hamburger.querySelectorAll('span');
+    spans[0].style.transform = '';spans[1].style.opacity = '1';spans[2].style.transform = '';
+  }));
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); observer.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
+
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      e.target.querySelectorAll('[data-count]').forEach(el => {
+        const target = parseFloat(el.dataset.count);
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        const isFloat = target % 1 !== 0;
+        const duration = 1800;
+        const start = performance.now();
+        function step(now) {
+          const p = Math.min((now - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - p, 3);
+          const val = isFloat ? (target * ease).toFixed(1) : Math.round(target * ease);
+          el.textContent = prefix + val + suffix;
+          if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
+      counterObserver.unobserve(e.target);
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('.stats-grid,.hero-stats').forEach(el => counterObserver.observe(el));
+
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const ans = item.querySelector('.faq-a');
+      const isOpen = btn.classList.contains('open');
+      document.querySelectorAll('.faq-q').forEach(b => { b.classList.remove('open'); b.closest('.faq-item').querySelector('.faq-a').classList.remove('open'); });
+      if (!isOpen) { btn.classList.add('open'); ans.classList.add('open'); }
+    });
+  });
+
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+</script>
+</body>
+</html>

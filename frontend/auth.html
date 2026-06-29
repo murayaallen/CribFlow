@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In · RentFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/design-system.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/layout.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    #splash {
+      position: fixed; inset: 0;
+      background: #0A3528;
+      z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    #splash.hide { animation: splash-out 0.55s cubic-bezier(0.4,0,0.2,1) forwards; }
+    @keyframes splash-out { to { opacity: 0; transform: scale(1.03); pointer-events: none; } }
+
+    #splash-icon {
+      width: 96px; height: 96px;
+      opacity: 0; transform: scale(0.5) translateY(16px);
+      animation: icon-in 0.65s cubic-bezier(0.34,1.56,0.64,1) 0.2s forwards;
+    }
+    @keyframes icon-in { to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    #splash-wordmark {
+      display: flex; align-items: baseline;
+      margin-top: 18px;
+      opacity: 0; transform: translateY(10px);
+      animation: fade-up 0.45s ease 0.72s forwards;
+    }
+    .w-rent { font-family: 'Manrope', sans-serif; font-size: 36px; font-weight: 300; letter-spacing: -1px; color: rgba(255,255,255,0.9); }
+    .w-flow { font-family: 'Manrope', sans-serif; font-size: 36px; font-weight: 800; letter-spacing: -1px; color: white; }
+
+    #splash-tagline {
+      font-family: 'Manrope', sans-serif; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(200,146,74,0.85);
+      margin-top: 7px;
+      opacity: 0; animation: fade-up 0.45s ease 1.0s forwards;
+    }
+    #splash-bar {
+      width: 44px; height: 2px; background: rgba(200,146,74,0.2);
+      border-radius: 2px; margin-top: 32px; overflow: hidden;
+      opacity: 0; animation: fade-up 0.3s ease 1.05s forwards;
+    }
+    #splash-bar-fill {
+      height: 100%; width: 0;
+      background: linear-gradient(90deg, #C8924A, #E8B770);
+      border-radius: 2px;
+      animation: bar-fill 1.1s ease 1.1s forwards;
+    }
+    @keyframes fade-up { to { opacity: 1; transform: translateY(0); } }
+    @keyframes bar-fill { to { width: 100%; } }
+
+    #theme-toggle {
+      position: fixed; top: 18px; right: 18px; z-index: 10000;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-border-strong);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+      color: var(--color-text-muted);
+    }
+    #theme-toggle:hover { background: var(--color-surface-2); color: var(--color-text); transform: scale(1.08); }
+    #theme-toggle svg { width: 17px; height: 17px; }
+
+    [data-theme="dark"] { --color-bg: #111110; --color-bg-elevated: #1A1A18; --color-surface: #1A1A18; --color-surface-2: #222220; --color-surface-3: #2A2A27; --color-border: #2E2E2B; --color-border-strong: #3A3A36; --color-text: #F0EEE6; --color-text-secondary: #A8A59A; --color-text-muted: #6A6760; }
+
+    .auth-form-side, .auth-form-side input, .auth-form-side select,
+    .auth-form-side button, .auth-form-side label, .auth-form-side p, .auth-form-side span {
+      font-family: 'Manrope', sans-serif;
+    }
+    .auth-side .auth-pitch h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 300; font-style: italic; }
+    .auth-side .auth-brand-name { font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 24px; }
+    .auth-pitch-tag, .auth-brand-tag-line, .auth-footer { font-family: 'Manrope', sans-serif; }
+
+    .auth-stats {
+      display: flex; gap: 0;
+      margin-bottom: 32px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .auth-stat {
+      flex: 1; padding: 16px 20px;
+      border-right: 1px solid rgba(255,255,255,0.07);
+    }
+    .auth-stat:last-child { border-right: none; }
+    .auth-stat-num {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 26px; font-weight: 400; color: white; line-height: 1;
+    }
+    .auth-stat-label {
+      font-family: 'Manrope', sans-serif;
+      font-size: 10px; font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    .auth-testimonial {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px; padding: 20px 22px;
+      backdrop-filter: blur(12px);
+    }
+    .auth-testimonial-quote {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 15px; font-weight: 300; font-style: italic;
+      line-height: 1.6; color: rgba(255,255,255,0.88);
+      margin-bottom: 16px;
+    }
+    .auth-testimonial-author { display: flex; align-items: center; gap: 10px; }
+    .auth-testimonial-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #C8924A, #E8B770);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700;
+      color: #0A3528; flex-shrink: 0;
+    }
+    .auth-testimonial-name { font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 700; color: white; }
+    .auth-testimonial-role { font-family: 'Manrope', sans-serif; font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+
+    .auth-testimonial-stars {
+      display: flex; gap: 3px; margin-bottom: 12px;
+    }
+    .auth-testimonial-stars svg { width: 13px; height: 13px; color: #E8B770; fill: #E8B770; }
+
+    .auth-form-side { position: relative; overflow: hidden; background: var(--color-bg); }
+    .auth-floats { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+    .auth-card { position: relative; z-index: 1; width: 100%; max-width: 420px; }
+
+    .auth-mobile-logo {
+      display: none;
+      align-items: center; gap: 10px;
+      margin-bottom: 36px;
+    }
+    .auth-mobile-logo-icon {
+      width: 40px; height: 40px; border-radius: 10px; overflow: hidden; flex-shrink: 0;
+    }
+    .auth-mobile-logo-name { font-family: 'Fraunces', serif; font-size: 20px; color: var(--color-text); }
+    @media (max-width: 900px) { .auth-mobile-logo { display: flex; } }
+
+    .auth-tabs {
+      display: flex; gap: 0;
+      background: var(--color-surface-2);
+      border-radius: 12px; padding: 4px;
+      margin-bottom: 32px;
+      border: 1px solid var(--color-border);
+    }
+    .auth-tab {
+      flex: 1; padding: 10px 16px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 13px; font-weight: 600;
+      color: var(--color-text-muted);
+      border-radius: 9px;
+      transition: all 160ms ease;
+      letter-spacing: 0.02em;
+    }
+    .auth-tab.active {
+      background: var(--color-surface);
+      color: var(--color-text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 1px 1px rgba(0,0,0,0.05);
+    }
+
+    .auth-form-head { margin-bottom: 28px; }
+    .auth-eyebrow {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--color-accent-dark); margin-bottom: 10px;
+    }
+    .auth-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent); }
+    .auth-title {
+      font-family: 'Fraunces', Georgia, serif !important;
+      font-weight: 400 !important; font-style: italic;
+      font-size: 34px !important; line-height: 1.1 !important;
+      letter-spacing: -0.02em !important;
+      color: var(--color-text); margin-bottom: 8px;
+    }
+    .auth-subtitle {
+      font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 400;
+      color: var(--color-text-secondary); line-height: 1.5;
+    }
+
+    .auth-form-group { margin-bottom: 18px; }
+    .label-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 7px;
+    }
+    .auth-label {
+      font-family: 'Manrope', sans-serif;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .auth-label-link {
+      font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 500;
+      color: var(--color-primary); text-decoration: none;
+    }
+    .auth-label-link:hover { text-decoration: underline; }
+
+    .input-wrap { position: relative; }
+    .input-wrap .auth-input {
+      width: 100%; height: 50px;
+      padding: 0 16px 0 46px;
+      font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 400;
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-border-strong);
+      border-radius: 12px;
+      color: var(--color-text);
+      transition: all 160ms ease;
+      outline: none;
+    }
+    .input-wrap .auth-input::placeholder { color: var(--color-text-muted); font-weight: 400; }
+    .input-wrap .auth-input:focus {
+      border-color: var(--color-primary);
+      background: var(--color-surface);
+      box-shadow: 0 0 0 3.5px rgba(15,76,58,0.1);
+    }
+    .input-wrap .auth-input:focus + .field-icon { color: var(--color-primary); }
+    .field-icon {
+      position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 18px; color: var(--color-text-muted);
+      pointer-events: none; transition: color 160ms ease;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .field-icon svg { width: 16px; height: 16px; }
+
+    .input-wrap .auth-input.has-suffix { padding-right: 46px; }
+    .input-suffix {
+      position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+      color: var(--color-text-muted); cursor: pointer; padding: 4px;
+      line-height: 0; border-radius: 6px; transition: color 160ms ease;
+      background: none; border: none;
+    }
+    .input-suffix:hover { color: var(--color-text); }
+    .input-suffix svg { width: 16px; height: 16px; }
+
+    .pw-strength { height: 3px; border-radius: 3px; background: var(--color-border); margin-top: 8px; overflow: hidden; }
+    .pw-strength-fill { height: 100%; width: 0; border-radius: 3px; transition: width 0.3s ease, background 0.3s ease; }
+
+    .btn-auth {
+      width: 100%; height: 52px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 700;
+      letter-spacing: 0.02em; color: white;
+      background: linear-gradient(135deg, #0A3528 0%, #1A6B53 60%, #0F4C3A 100%);
+      background-size: 200% 200%;
+      border: none; border-radius: 12px; cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.15), 0 4px 16px rgba(15,76,58,0.28), inset 0 1px 0 rgba(255,255,255,0.1);
+      position: relative; overflow: hidden;
+      transition: all 200ms ease;
+    }
+    .btn-auth::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+    }
+    .btn-auth:hover:not(:disabled) {
+      background-position: right center;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.2), 0 8px 28px rgba(15,76,58,0.38), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .btn-auth:active:not(:disabled) { transform: translateY(0); box-shadow: 0 1px 0 rgba(0,0,0,0.15), 0 2px 8px rgba(15,76,58,0.2); }
+    .btn-auth:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+    .btn-auth svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .auth-trust {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 22px;
+      font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 500;
+      color: var(--color-text-muted); letter-spacing: 0.02em;
+    }
+    .auth-trust svg { width: 12px; height: 12px; color: var(--color-primary-light); flex-shrink: 0; }
+    .trust-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--color-border-strong); flex-shrink: 0; }
+
+    .auth-divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 24px 0 20px;
+    }
+    .auth-divider-line { flex: 1; height: 1px; background: var(--color-border); }
+    .auth-divider span {
+      font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 600;
+      color: var(--color-text-muted); letter-spacing: 0.06em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .auth-input-help {
+      font-size: 11px; font-weight: 400; color: var(--color-text-muted);
+      margin-top: 6px; line-height: 1.4;
+    }
+
+    @keyframes morph-a {
+      0%,100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: translate(0,0) scale(1); }
+      25%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: translate(14px,-20px) scale(1.04); }
+      50%      { border-radius: 50% 60% 30% 60% / 30% 60% 40% 70%; transform: translate(-8px,14px) scale(0.97); }
+      75%      { border-radius: 40% 60% 60% 30% / 70% 30% 50% 60%; transform: translate(6px,8px) scale(1.02); }
+    }
+    @keyframes morph-b {
+      0%,100% { border-radius: 40% 60% 60% 40% / 40% 40% 60% 60%; transform: translate(0,0) scale(1); }
+      33%      { border-radius: 60% 40% 40% 60% / 60% 60% 40% 40%; transform: translate(-16px,12px) scale(1.06); }
+      66%      { border-radius: 50% 50% 30% 70% / 50% 70% 30% 50%; transform: translate(12px,-10px) scale(0.95); }
+    }
+    @keyframes morph-c {
+      0%,100% { border-radius: 70% 30% 50% 50% / 30% 50% 50% 70%; transform: translate(0,0); }
+      50%      { border-radius: 30% 70% 30% 70% / 70% 30% 70% 30%; transform: translate(-12px,18px) scale(1.08); }
+    }
+    @keyframes morph-d {
+      0%,100% { border-radius: 50% 50% 40% 60% / 60% 40% 60% 40%; transform: translate(0,0) scale(1); }
+      40%      { border-radius: 60% 40% 60% 40% / 40% 60% 40% 60%; transform: translate(10px,-14px) scale(1.05); }
+      80%      { border-radius: 40% 60% 50% 50% / 50% 40% 60% 50%; transform: translate(-6px,6px) scale(0.96); }
+    }
+    @keyframes morph-e {
+      0%,100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: translate(0,0); }
+      50%      { border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%; transform: translate(14px,10px) scale(1.1); }
+    }
+
+    .af-blob { position: absolute; filter: blur(60px); }
+    .af-blob-1 { width: 420px; height: 380px; top: -100px; right: -100px; background: radial-gradient(ellipse, rgba(15,76,58,0.14) 0%, rgba(15,76,58,0.06) 55%, transparent 80%); animation: morph-a 15s ease-in-out infinite; }
+    .af-blob-2 { width: 320px; height: 300px; bottom: -80px; left: -70px; background: radial-gradient(ellipse, rgba(200,146,74,0.12) 0%, rgba(200,146,74,0.05) 55%, transparent 80%); animation: morph-b 19s ease-in-out infinite 2s; }
+    .af-blob-3 { width: 200px; height: 220px; top: 38%; right: -30px; background: radial-gradient(ellipse, rgba(26,107,83,0.1) 0%, transparent 70%); animation: morph-c 13s ease-in-out infinite 1s; }
+    .af-blob-4 { width: 150px; height: 170px; top: 10%; left: 6%; background: radial-gradient(ellipse, rgba(200,146,74,0.09) 0%, transparent 70%); animation: morph-d 11s ease-in-out infinite 3s; }
+    .af-blob-5 { width: 240px; height: 210px; bottom: 20%; left: 28%; background: radial-gradient(ellipse, rgba(15,76,58,0.08) 0%, transparent 70%); animation: morph-e 17s ease-in-out infinite 0.5s; }
+    .af-dots-1 { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(15,76,58,0.09) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.55; }
+
+    [data-theme="dark"] .af-blob-1 { background: radial-gradient(ellipse, rgba(15,76,58,0.24) 0%, rgba(15,76,58,0.1) 55%, transparent 80%); }
+    [data-theme="dark"] .af-blob-2 { background: radial-gradient(ellipse, rgba(200,146,74,0.18) 0%, rgba(200,146,74,0.07) 55%, transparent 80%); }
+    [data-theme="dark"] .af-blob-3 { background: radial-gradient(ellipse, rgba(26,107,83,0.2) 0%, transparent 70%); }
+    [data-theme="dark"] .af-blob-4 { background: radial-gradient(ellipse, rgba(200,146,74,0.15) 0%, transparent 70%); }
+    [data-theme="dark"] .af-blob-5 { background: radial-gradient(ellipse, rgba(15,76,58,0.16) 0%, transparent 70%); }
+    [data-theme="dark"] .af-dots-1 { background-image: radial-gradient(circle, rgba(26,107,83,0.14) 1px, transparent 1px); }
+
+    .auth-panel { animation: panel-in 0.22s ease; }
+    @keyframes panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <div id="splash">
+    <img id="splash-icon" src="/images/rentflow-logo/rentflow-logo/rentflow-icon-white.svg" alt="RentFlow" />
+    <div id="splash-wordmark">
+      <span class="w-rent">Rent</span><span class="w-flow">Flow</span>
+    </div>
+    <div id="splash-tagline">Crafted for Kenya's landlords.</div>
+    <div id="splash-bar"><div id="splash-bar-fill"></div></div>
+  </div>
+
+  <button id="theme-toggle" aria-label="Toggle theme"></button>
+
+  <div class="auth-layout">
+
+    <aside class="auth-side">
+      <div class="auth-side-image"></div>
+      <div class="auth-side-overlay"></div>
+      <div class="auth-side-content">
+
+        <div class="auth-brand">
+          <div class="auth-brand-logo">
+            <img src="/images/rentflow-logo/rentflow-logo/rentflow-icon-white.svg" alt="RentFlow" style="width:100%;height:100%;object-fit:contain;" />
+          </div>
+          <div>
+            <div class="auth-brand-name">RentFlow</div>
+            <div class="auth-brand-tag-line">Crafted for Kenya's landlords.</div>
+          </div>
+        </div>
+
+        <div class="auth-pitch">
+          <div class="auth-pitch-tag">Kenya's Property Platform</div>
+          <h2>Manage your<br/>properties with<br/>confidence.</h2>
+          <p>Track rent, water bills, and M-Pesa payments across all your units — from one calm, beautiful dashboard.</p>
+
+          <div class="auth-stats" style="margin-top: 28px;">
+            <div class="auth-stat">
+              <div class="auth-stat-num">99.9%</div>
+              <div class="auth-stat-label">Uptime</div>
+            </div>
+            <div class="auth-stat">
+              <div class="auth-stat-num">256-bit</div>
+              <div class="auth-stat-label">Encryption</div>
+            </div>
+            <div class="auth-stat">
+              <div class="auth-stat-num">4.9 / 5</div>
+              <div class="auth-stat-label">Ease of use</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-testimonial">
+          <div class="auth-testimonial-stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <div class="auth-testimonial-quote">"RentFlow has brought a level of structure and accountability to my portfolio that I didn't think was possible with a local solution. Billing is accurate, payments reconcile automatically, and I have full visibility at any time."</div>
+          <div class="auth-testimonial-author">
+            <div class="auth-testimonial-avatar">AM</div>
+            <div>
+              <div class="auth-testimonial-name">Allen Muraya</div>
+              <div class="auth-testimonial-role">Property Investor · 28 units · Nairobi</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-footer">© 2026 RentFlow · Crafted for Kenya's landlords.</div>
+      </div>
+    </aside>
+
+    <main class="auth-form-side">
+
+      <div class="auth-floats" aria-hidden="true">
+        <div class="af-blob af-blob-1"></div>
+        <div class="af-blob af-blob-2"></div>
+        <div class="af-blob af-blob-3"></div>
+        <div class="af-blob af-blob-4"></div>
+        <div class="af-blob af-blob-5"></div>
+        <div class="af-dots-1"></div>
+      </div>
+
+      <div class="auth-card">
+
+        <div class="auth-mobile-logo">
+          <div class="auth-mobile-logo-icon">
+            <img src="/images/rentflow-logo/rentflow-logo/rentflow-icon.svg" alt="RentFlow" style="width:100%;height:100%;object-fit:contain;" />
+          </div>
+          <div class="auth-mobile-logo-name">RentFlow</div>
+        </div>
+
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="signin">Sign In</button>
+          <button class="auth-tab" data-tab="signup">Create Account</button>
+        </div>
+
+        <div id="panel-signin" class="auth-panel">
+          <div class="auth-form-head">
+            <div class="auth-eyebrow">
+              <span class="auth-eyebrow-dot"></span>
+              Welcome back
+            </div>
+            <h1 class="auth-title">Sign in to<br/>RentFlow</h1>
+            <p class="auth-subtitle">Access your properties, tenants, and payments.</p>
+          </div>
+
+          <form id="form-signin" autocomplete="on">
+
+            <div class="auth-form-group">
+              <div class="label-row">
+                <label class="auth-label" for="signin-email">Email address</label>
+              </div>
+              <div class="input-wrap">
+                <input class="auth-input" type="email" id="signin-email" required autocomplete="email" placeholder="you@example.com" />
+                <span class="field-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="auth-form-group">
+              <div class="label-row">
+                <label class="auth-label" for="signin-password">Password</label>
+                <a href="#" class="auth-label-link" id="forgot-link">Forgot password?</a>
+              </div>
+              <div class="input-wrap">
+                <input class="auth-input has-suffix" type="password" id="signin-password" required autocomplete="current-password" placeholder="Enter your password" />
+                <span class="field-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                <button type="button" class="input-suffix" id="toggle-pw-signin" aria-label="Show password">
+                  <svg id="eye-open-signin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg id="eye-closed-signin" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-auth" id="signin-btn">
+              <span>Sign In</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </button>
+
+            <div class="auth-trust">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>End-to-end encrypted</span>
+              <span class="trust-sep"></span>
+              <span>Supabase secured</span>
+              <span class="trust-sep"></span>
+              <span>Kenya-built</span>
+            </div>
+          </form>
+        </div>
+
+        <div id="panel-signup" class="auth-panel" style="display:none">
+          <div class="auth-form-head">
+            <div class="auth-eyebrow">
+              <span class="auth-eyebrow-dot"></span>
+              Get started free
+            </div>
+            <h1 class="auth-title">Create your<br/>account</h1>
+            <p class="auth-subtitle">Set up in under 2 minutes. No credit card needed.</p>
+          </div>
+
+          <form id="form-signup" autocomplete="on">
+
+            <div class="auth-form-group">
+              <label class="auth-label" for="signup-name" style="display:block;margin-bottom:7px">Full name</label>
+              <div class="input-wrap">
+                <input class="auth-input" type="text" id="signup-name" required autocomplete="name" placeholder="Jane Wanjiku" />
+                <span class="field-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="auth-form-group">
+              <label class="auth-label" for="signup-email" style="display:block;margin-bottom:7px">Email address</label>
+              <div class="input-wrap">
+                <input class="auth-input" type="email" id="signup-email" required autocomplete="email" placeholder="you@example.com" />
+                <span class="field-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="auth-form-group">
+              <label class="auth-label" for="signup-phone" style="display:block;margin-bottom:7px">Phone <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-muted)">(optional)</span></label>
+              <div class="input-wrap">
+                <input class="auth-input" type="tel" id="signup-phone" autocomplete="tel" placeholder="+254 7XX XXX XXX" />
+                <span class="field-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 6 6l.85-.85a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.65 16z"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="auth-form-group">
+              <label class="auth-label" for="signup-password" style="display:block;margin-bottom:7px">Password</label>
+              <div class="input-wrap">
+                <input class="auth-input has-suffix" type="password" id="signup-password" required autocomplete="new-password" minlength="8" placeholder="At least 8 characters" />
+                <span class="field-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                <button type="button" class="input-suffix" id="toggle-pw-signup" aria-label="Show password">
+                  <svg id="eye-open-signup" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg id="eye-closed-signup" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+              </div>
+              <div class="pw-strength"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+              <div class="auth-input-help" id="pw-strength-label">Use 8+ characters with a mix of letters and numbers.</div>
+            </div>
+
+            <button type="submit" class="btn-auth" id="signup-btn">
+              <span>Create Account</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </button>
+
+            <div class="auth-trust">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Free forever for small portfolios</span>
+              <span class="trust-sep"></span>
+              <span>No credit card</span>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script>
+    setTimeout(() => {
+      const s = document.getElementById('splash');
+      s.classList.add('hide');
+      setTimeout(() => s.remove(), 580);
+    }, 2400);
+
+    const SUN_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+    function setAuthToggleIcon(theme) {
+      document.getElementById('theme-toggle').innerHTML = theme === 'dark' ? SUN_SVG : MOON_SVG;
+    }
+
+    setAuthToggleIcon(localStorage.getItem('rf-theme') || 'light');
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      setAuthToggleIcon(next);
+    });
+
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.tab;
+        const si = document.getElementById('panel-signin');
+        const su = document.getElementById('panel-signup');
+        si.style.display = target === 'signin' ? 'block' : 'none';
+        su.style.display = target === 'signup' ? 'block' : 'none';
+        if (target === 'signin') si.className = 'auth-panel';
+        else su.className = 'auth-panel';
+      });
+    });
+
+    function setupPwToggle(toggleId, inputId, openId, closedId) {
+      document.getElementById(toggleId).addEventListener('click', () => {
+        const inp = document.getElementById(inputId);
+        const isText = inp.type === 'text';
+        inp.type = isText ? 'password' : 'text';
+        document.getElementById(openId).style.display = isText ? 'block' : 'none';
+        document.getElementById(closedId).style.display = isText ? 'none' : 'block';
+      });
+    }
+    setupPwToggle('toggle-pw-signin', 'signin-password', 'eye-open-signin', 'eye-closed-signin');
+    setupPwToggle('toggle-pw-signup', 'signup-password', 'eye-open-signup', 'eye-closed-signup');
+
+    document.getElementById('signup-password').addEventListener('input', function() {
+      const v = this.value;
+      const fill = document.getElementById('pw-strength-fill');
+      const label = document.getElementById('pw-strength-label');
+      let score = 0;
+      if (v.length >= 8) score++;
+      if (/[A-Z]/.test(v)) score++;
+      if (/[0-9]/.test(v)) score++;
+      if (/[^A-Za-z0-9]/.test(v)) score++;
+      const configs = [
+        { w: '0%', bg: 'transparent', text: 'Use 8+ characters with letters and numbers.' },
+        { w: '25%', bg: '#ef4444', text: 'Weak — add uppercase letters or numbers.' },
+        { w: '50%', bg: '#f97316', text: 'Fair — getting there.' },
+        { w: '75%', bg: '#eab308', text: 'Good — add a symbol to strengthen.' },
+        { w: '100%', bg: '#22c55e', text: 'Strong password!' },
+      ];
+      const cfg = configs[score];
+      fill.style.width = cfg.w;
+      fill.style.background = cfg.bg;
+      label.textContent = cfg.text;
+    });
+
+    redirectIfAuthed();
+
+    document.getElementById('form-signin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('signin-btn');
+      const email = document.getElementById('signin-email').value.trim();
+      const password = document.getElementById('signin-password').value;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner spinner-sm" style="border-color:rgba(255,255,255,.3);border-top-color:#fff;width:18px;height:18px;"></div><span>Signing in…</span>';
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Sign In</span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>';
+        showToast(error.message, 'error', { title: 'Sign in failed' });
+        return;
+      }
+      window.location.href = '/index.html';
+    });
+
+    document.getElementById('form-signup').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('signup-btn');
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const phone = document.getElementById('signup-phone').value.trim();
+      const password = document.getElementById('signup-password').value;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner spinner-sm" style="border-color:rgba(255,255,255,.3);border-top-color:#fff;width:18px;height:18px;"></div><span>Creating account…</span>';
+      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name, phone } } });
+      if (error) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Create Account</span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>';
+        showToast(error.message, 'error', { title: 'Sign up failed' });
+        return;
+      }
+      if (data.session) {
+        if (phone) await sb.from('profiles').update({ phone }).eq('id', data.user.id);
+        window.location.href = '/index.html';
+      } else {
+        showToast('Check your email to confirm your account.', 'success', { title: 'Almost there!' });
+        btn.disabled = false;
+        btn.innerHTML = '<span>Create Account</span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>';
+      }
+    });
+
+    document.getElementById('forgot-link').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signin-email').value.trim();
+      if (!email) { showToast('Enter your email above first.', 'warning'); return; }
+      const { error } = await sb.auth.resetPasswordForEmail(email);
+      if (error) showToast(error.message, 'error');
+      else showToast('Check your email for a reset link.', 'success', { title: 'Reset link sent' });
+    });
+  </script>
+</body>
+</html>

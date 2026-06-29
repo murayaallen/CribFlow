@@ -1,0 +1,13 @@
+<svg width="220" height="200" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="220" height="200" rx="16" fill="#FAFAF6"/>
+  <!-- Icon centred -->
+  <rect x="78" y="16" width="64" height="64" rx="13" fill="#0F4C3A"/>
+  <path d="M90 64L90 43L110 28L130 43L130 64Z" fill="#FFFFFF"/>
+  <path d="M103 64L103 53A7 7 0 0 0 117 53L117 64Z" fill="#C8924A"/>
+  <circle cx="110" cy="38" r="3.5" fill="#C8924A"/>
+  <!-- Wordmark centred below -->
+  <text x="110" y="116" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="34" letter-spacing="-1.5" fill="#0F4C3A" font-weight="200">Rent</text>
+  <text x="165" y="116" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="34" letter-spacing="-1.5" fill="#0F4C3A" font-weight="700">Flow</text>
+  <!-- Tagline -->
+  <text x="110" y="143" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" letter-spacing="2" fill="#8A877A">PROPERTY MANAGEMENT</text>
+</svg>

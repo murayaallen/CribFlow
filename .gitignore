@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Secrets / local config (never commit)
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/js/config.js
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/
+
+# Build / misc
+dist/
+tmp/

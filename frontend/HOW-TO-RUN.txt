@@ -1,0 +1,23 @@
+RENTFLOW — HOW TO RUN
+=====================
+
+OPTION 1 — Double-click START.bat  (requires Node.js or Python)
+  Then open:  http://localhost:5500/landing.html  (website)
+              http://localhost:5500/auth.html      (sign in)
+              http://localhost:5500/index.html     (dashboard)
+
+OPTION 2 — VS Code + Live Server extension
+  1. Open the RentFlow-Web folder in VS Code
+  2. Click "Go Live" in the bottom bar
+  3. Navigate to landing.html or auth.html
+
+OPTION 3 — Python (no install needed on most machines)
+  Open a terminal in this folder and run:
+    python -m http.server 5500
+  Then open:  http://localhost:5500/landing.html
+
+NOTES
+  - The app connects to Supabase (cloud) — internet required.
+  - Do NOT open HTML files directly from the file system (file://)
+    as Supabase auth will not work. Always use a local server.
+  - Credentials are already set in js/config.js — no changes needed.
