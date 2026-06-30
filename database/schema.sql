@@ -158,8 +158,9 @@ create table public.payments (
   id uuid primary key default uuid_generate_v4(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   room_id uuid not null references public.rooms(id) on delete cascade,
-  bill_id uuid references public.bills(id) on delete set null,
+  bill_id uuid references public.bills(id) on delete set null,  -- legacy hint; allocation is authoritative
   amount numeric(10,2) not null check (amount > 0),
+  credited_amount numeric(10,2) not null default 0, -- portion banked to tenant credit (overpayment)
   method text check (method in ('mpesa','bank','cash','other')) not null,
   mpesa_code text,                                  -- transaction code
   reference text,                                   -- bank ref, cash receipt no.
@@ -173,6 +174,23 @@ create index idx_payments_tenant on public.payments(tenant_id);
 create index idx_payments_bill on public.payments(bill_id);
 create index idx_payments_date on public.payments(payment_date desc);
 create unique index idx_payments_mpesa_code on public.payments(mpesa_code) where mpesa_code is not null;
+
+-- =============================================================================
+-- 7b. PAYMENT ALLOCATIONS — how each payment is split across bills
+-- A payment is auto-allocated across the tenant's open bills, oldest-first.
+-- bills.total_paid is always recomputed from these rows (see triggers below).
+-- =============================================================================
+create table public.payment_allocations (
+  id uuid primary key default uuid_generate_v4(),
+  payment_id uuid not null references public.payments(id) on delete cascade,
+  bill_id    uuid not null references public.bills(id)    on delete cascade,
+  amount     numeric(10,2) not null check (amount > 0),
+  created_at timestamptz default now(),
+  unique (payment_id, bill_id)
+);
+
+create index idx_alloc_payment on public.payment_allocations(payment_id);
+create index idx_alloc_bill    on public.payment_allocations(bill_id);
 
 -- =============================================================================
 -- 8. M-PESA TRANSACTIONS (raw Daraja callbacks)
@@ -245,35 +263,106 @@ create trigger update_tenants_updated_at before update on tenants
 create trigger update_bills_updated_at before update on bills
   for each row execute function update_updated_at_column();
 
--- Auto-recalculate bill status when a payment is recorded
-create or replace function recalculate_bill_status()
-returns trigger as $$
-declare
-  v_total_paid numeric(10,2);
-  v_total_due numeric(10,2);
+-- -----------------------------------------------------------------------------
+-- PAYMENT ALLOCATION — single source of truth for applying money to bills.
+-- (See database/migrations/001_payment_allocation.sql for the same logic as an
+--  idempotent migration + backfill for an already-deployed database.)
+-- -----------------------------------------------------------------------------
+
+-- Recompute one bill's total_paid + status from its allocations
+create or replace function fn_recompute_bill(p_bill_id uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare v_paid numeric(10,2); v_status text;
 begin
-  if new.bill_id is not null then
-    select coalesce(sum(amount), 0) into v_total_paid
-      from payments where bill_id = new.bill_id;
-    select total_due into v_total_due
-      from bills where id = new.bill_id;
-
-    update bills
-      set total_paid = v_total_paid,
-          status = case
-            when v_total_paid >= v_total_due then 'paid'
-            when v_total_paid > 0 then 'partial'
-            else 'unpaid'
-          end
-      where id = new.bill_id;
-  end if;
-  return new;
+  if p_bill_id is null then return; end if;
+  select coalesce(sum(amount),0) into v_paid from payment_allocations where bill_id = p_bill_id;
+  select status into v_status from bills where id = p_bill_id;
+  if v_status = 'void' then return; end if;  -- never auto-touch a voided bill
+  update bills
+     set total_paid = v_paid,
+         status = case when v_paid >= total_due then 'paid'
+                       when v_paid > 0          then 'partial'
+                       else 'unpaid' end
+   where id = p_bill_id;
 end;
-$$ language plpgsql;
+$$;
 
-create trigger trg_recalculate_bill_after_payment
+create or replace function fn_alloc_after_change()
+returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'DELETE' then perform fn_recompute_bill(old.bill_id); return old;
+  else perform fn_recompute_bill(new.bill_id); return new; end if;
+end;
+$$;
+
+create trigger trg_alloc_recompute
+  after insert or update or delete on payment_allocations
+  for each row execute function fn_alloc_after_change();
+
+-- Allocate one payment across the tenant's open bills, oldest-first;
+-- bank any remainder to tenant credit (flagged for manual handling).
+create or replace function fn_allocate_payment(p_payment_id uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_tenant_id uuid; v_amount numeric(10,2); v_target uuid; remaining numeric(10,2);
+  v_bill record; alloc numeric(10,2); v_balance numeric(10,2);
+begin
+  select tenant_id, amount, bill_id into v_tenant_id, v_amount, v_target from payments where id = p_payment_id;
+  if v_tenant_id is null then return; end if;
+  remaining := v_amount;
+
+  -- Targeted bill first (if any), then oldest-first for the remainder
+  for v_bill in
+    select id, total_due, total_paid from bills
+     where tenant_id = v_tenant_id and status <> 'void' and (total_due - total_paid) > 0
+     order by case when id = v_target then 0 else 1 end, bill_year, bill_month
+     for update
+  loop
+    exit when remaining <= 0;
+    v_balance := v_bill.total_due - v_bill.total_paid;
+    alloc := least(remaining, v_balance);
+    insert into payment_allocations (payment_id, bill_id, amount)
+      values (p_payment_id, v_bill.id, alloc)
+      on conflict (payment_id, bill_id) do update set amount = payment_allocations.amount + excluded.amount;
+    remaining := remaining - alloc;
+  end loop;
+
+  if remaining > 0 then
+    update tenants set credit_balance = coalesce(credit_balance,0) + remaining where id = v_tenant_id;
+    update payments set credited_amount = remaining where id = p_payment_id;
+  end if;
+end;
+$$;
+
+create or replace function fn_payment_after_insert()
+returns trigger
+language plpgsql security definer set search_path = public as $$
+begin perform fn_allocate_payment(new.id); return new; end;
+$$;
+
+create trigger trg_payment_allocate
   after insert on payments
-  for each row execute function recalculate_bill_status();
+  for each row execute function fn_payment_after_insert();
+
+-- Reverse banked credit when a payment is deleted (allocations cascade away)
+create or replace function fn_payment_before_delete()
+returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if old.credited_amount > 0 then
+    update tenants set credit_balance = greatest(0, coalesce(credit_balance,0) - old.credited_amount)
+     where id = old.tenant_id;
+  end if;
+  return old;
+end;
+$$;
+
+create trigger trg_payment_reverse_credit
+  before delete on payments
+  for each row execute function fn_payment_before_delete();
 
 -- Auto-create a profile row when a user signs up
 create or replace function handle_new_user()

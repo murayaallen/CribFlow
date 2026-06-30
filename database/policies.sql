@@ -13,6 +13,7 @@ alter table tenants enable row level security;
 alter table water_readings enable row level security;
 alter table bills enable row level security;
 alter table payments enable row level security;
+alter table payment_allocations enable row level security;
 alter table mpesa_transactions enable row level security;
 alter table email_logs enable row level security;
 
@@ -173,6 +174,20 @@ create policy "users insert own payments" on payments
   for insert with check (
     room_id in (
       select r.id from rooms r
+      join properties p on p.id = r.property_id
+      where p.user_id = auth.uid()
+    )
+  );
+
+-- =============================================================================
+-- PAYMENT ALLOCATIONS (read only for owners; written only by SECURITY DEFINER
+-- allocation functions, so no insert/update/delete policy is needed)
+-- =============================================================================
+create policy "users see own allocations" on payment_allocations
+  for select using (
+    bill_id in (
+      select b.id from bills b
+      join rooms r      on r.id = b.room_id
       join properties p on p.id = r.property_id
       where p.user_id = auth.uid()
     )
