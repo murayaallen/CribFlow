@@ -24,7 +24,7 @@ let TENANT_PAYMENTS = [];
 
 async function loadTenant(tenantId) {
   const [tenantRes, billsRes, paymentsRes] = await Promise.all([
-    sb.from('tenants').select(`*, auth_user_id, rooms(id, name, monthly_rent, properties(id, name, account_prefix))`).eq('id', tenantId).single(),
+    sb.from('tenants').select(`*, rooms(id, name, monthly_rent, properties(id, name, account_prefix))`).eq('id', tenantId).single(),
     sb.from('bills').select('*').eq('tenant_id', tenantId).order('bill_year', { ascending: false }).order('bill_month', { ascending: false }),
     sb.from('payments').select('*').eq('tenant_id', tenantId).order('payment_date', { ascending: false }),
   ]);
@@ -70,7 +70,6 @@ function renderPage(bills, payments) {
       </div>
       <div class="page-actions">
         ${t.status === 'active' ? `
-          <button class="btn btn-secondary" onclick="openLinkAccountModal()" title="Link tenant's mobile app account">${icon('phone')}<span>${t.auth_user_id ? 'App Linked ✓' : 'Link App'}</span></button>
           <button class="btn btn-secondary" onclick="openEditTenantModal()">${icon('edit')}<span>Edit</span></button>
           <button class="btn btn-secondary" onclick="openMoveOutModal()" style="color: var(--color-danger)">${icon('logout')}<span>Move Out</span></button>
         ` : ''}
@@ -417,100 +416,4 @@ function printTenantReceipt(idx) {
   const w = window.open('', '_blank', 'width=680,height=820,menubar=no,toolbar=no,location=no');
   w.document.write(html);
   w.document.close();
-}
-
-/* ---- LINK TENANT APP ACCOUNT ---- */
-async function openLinkAccountModal() {
-  const t = CURRENT_TENANT;
-  const alreadyLinked = !!t.auth_user_id;
-
-  const content = `
-    <div style="background: var(--color-primary-50); border: 1px solid var(--color-primary-100); padding: 12px 14px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 13px; line-height: 1.6">
-      ${icon('info')} Linking lets <strong>${escapeHtml(t.full_name)}</strong> sign in to the <strong>RentFlow Tenant App</strong> and see their bills, balance, and payment history.
-    </div>
-
-    ${alreadyLinked ? `
-      <div style="background: var(--color-success-bg); border: 1px solid var(--color-success-border, #BBF7D0); padding: 12px 14px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 13px; color: var(--color-success)">
-        ${icon('check')} This tenant already has an app account linked.
-      </div>
-    ` : ''}
-
-    <div class="form-group">
-      <label class="label label-required" for="link-email">Tenant's app sign-up email</label>
-      <input class="input" id="link-email" type="email" value="${escapeHtml(t.email || '')}" placeholder="email they used to register on the app" />
-      <div class="input-help">The tenant must have already downloaded and signed up on the RentFlow tenant app with this email.</div>
-    </div>
-
-    <div id="link-result" style="display:none"></div>
-  `;
-
-  const footer = `
-    <button class="btn btn-secondary" id="cancel-link">Cancel</button>
-    ${alreadyLinked ? `<button class="btn btn-danger btn-sm" id="unlink-btn" style="margin-right: auto">${icon('trash')}<span>Unlink</span></button>` : ''}
-    <button class="btn btn-primary" id="find-link-btn">${icon('search')}<span>Find & Link</span></button>
-  `;
-
-  const { close } = openModal(content, { title: 'Link Tenant App Account', footer });
-
-  document.getElementById('cancel-link').addEventListener('click', close);
-
-  if (alreadyLinked) {
-    document.getElementById('unlink-btn').addEventListener('click', async () => {
-      const { error } = await sb.from('tenants').update({ auth_user_id: null }).eq('id', t.id);
-      if (error) { showToast(error.message, 'error'); return; }
-      close();
-      showToast('Account unlinked', 'success');
-      loadTenant(t.id);
-    });
-  }
-
-  document.getElementById('find-link-btn').addEventListener('click', async () => {
-    const email = document.getElementById('link-email').value.trim();
-    if (!email) { showToast('Enter an email address', 'error'); return; }
-
-    const btn = document.getElementById('find-link-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner spinner-sm" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></div><span>Searching…</span>';
-
-    const { data: authUserId, error } = await sb.rpc('get_auth_user_id_by_email', { p_email: email });
-
-    btn.disabled = false;
-    btn.innerHTML = `${icon('search')}<span>Find & Link</span>`;
-
-    const resultEl = document.getElementById('link-result');
-    resultEl.style.display = 'block';
-
-    if (error || !authUserId) {
-      resultEl.innerHTML = `
-        <div style="background: var(--color-danger-bg); border: 1px solid #FCA5A5; padding: 12px 14px; border-radius: var(--radius-md); font-size: 13px; color: var(--color-danger)">
-          ${icon('alert')} No account found for <strong>${escapeHtml(email)}</strong>. Make sure the tenant has signed up on the tenant app first.
-        </div>`;
-      return;
-    }
-
-    resultEl.innerHTML = `
-      <div style="background: var(--color-success-bg); border: 1px solid #BBF7D0; padding: 12px 14px; border-radius: var(--radius-md); font-size: 13px; color: var(--color-success); margin-bottom: 12px">
-        ${icon('check')} Account found! Click <strong>Confirm Link</strong> to connect it to this tenant.
-      </div>`;
-
-    btn.textContent = '';
-    btn.innerHTML = `${icon('link')}<span>Confirm Link</span>`;
-    btn.disabled = false;
-
-    btn.onclick = async () => {
-      btn.disabled = true;
-      btn.innerHTML = '<div class="spinner spinner-sm" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></div><span>Linking…</span>';
-
-      const { error: updateErr } = await sb.from('tenants').update({ auth_user_id: authUserId }).eq('id', t.id);
-      if (updateErr) {
-        showToast(updateErr.message, 'error');
-        btn.disabled = false;
-        btn.innerHTML = `${icon('link')}<span>Confirm Link</span>`;
-        return;
-      }
-      close();
-      showToast(`${t.full_name}'s app account linked successfully`, 'success');
-      loadTenant(t.id);
-    };
-  });
 }
