@@ -7,6 +7,7 @@
 
 -- Enable RLS on every table
 alter table profiles enable row level security;
+alter table subscriptions enable row level security;
 alter table properties enable row level security;
 alter table rooms enable row level security;
 alter table tenants enable row level security;
@@ -26,6 +27,12 @@ create policy "users update own profile" on profiles
   for update using (auth.uid() = id);
 create policy "users insert own profile" on profiles
   for insert with check (auth.uid() = id);
+
+-- =============================================================================
+-- SUBSCRIPTIONS (users may read their own; plan changes are admin/backend-only)
+-- =============================================================================
+create policy "users see own subscription" on subscriptions
+  for select using (user_id = auth.uid());
 
 -- =============================================================================
 -- PROPERTIES

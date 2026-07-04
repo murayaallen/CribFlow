@@ -29,6 +29,25 @@ create table public.profiles (
 );
 
 -- =============================================================================
+-- 1b. SUBSCRIPTIONS (one per landlord — plan tier + limits)
+-- One row per user, created automatically on signup (see handle_new_user).
+-- =============================================================================
+create table public.subscriptions (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null unique references public.profiles(id) on delete cascade,
+  plan text not null check (plan in ('free','basic','pro')) default 'free',
+  status text not null check (status in ('active','past_due','canceled')) default 'active',
+  max_properties int not null default 2,
+  max_rooms_per_property int not null default 10,
+  features jsonb not null default '{"email":false,"reports":false,"reminders":false,"sms":false}'::jsonb,
+  current_period_end timestamptz,                   -- null = no expiry (free)
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index idx_subscriptions_user on public.subscriptions(user_id);
+
+-- =============================================================================
 -- 2. PROPERTIES
 -- =============================================================================
 create table public.properties (
@@ -262,6 +281,25 @@ create trigger update_tenants_updated_at before update on tenants
   for each row execute function update_updated_at_column();
 create trigger update_bills_updated_at before update on bills
   for each row execute function update_updated_at_column();
+create trigger update_subscriptions_updated_at before update on subscriptions
+  for each row execute function update_updated_at_column();
+
+-- -----------------------------------------------------------------------------
+-- PLAN ENFORCEMENT — can the user add another property under their plan?
+-- Called by the frontend before showing the "add property" form.
+-- -----------------------------------------------------------------------------
+create or replace function can_add_property(p_user_id uuid)
+returns boolean
+language plpgsql security definer set search_path = public as $$
+declare v_limit int; v_count int;
+begin
+  select max_properties into v_limit from subscriptions where user_id = p_user_id;
+  if v_limit is null then v_limit := 2; end if;          -- default to free-tier limit
+  if v_limit < 0 then return true; end if;               -- negative = unlimited (pro)
+  select count(*) into v_count from properties where user_id = p_user_id and archived = false;
+  return v_count < v_limit;
+end;
+$$;
 
 -- -----------------------------------------------------------------------------
 -- PAYMENT ALLOCATION — single source of truth for applying money to bills.
@@ -364,12 +402,16 @@ create trigger trg_payment_reverse_credit
   before delete on payments
   for each row execute function fn_payment_before_delete();
 
--- Auto-create a profile row when a user signs up
+-- Auto-create a profile + default free subscription when a user signs up
 create or replace function handle_new_user()
 returns trigger as $$
 begin
   insert into public.profiles (id, full_name)
   values (new.id, coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)));
+
+  insert into public.subscriptions (user_id, plan, status, max_properties, max_rooms_per_property)
+  values (new.id, 'free', 'active', 2, 10);
+
   return new;
 end;
 $$ language plpgsql security definer;
