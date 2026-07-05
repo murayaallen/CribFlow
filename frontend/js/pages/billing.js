@@ -54,6 +54,7 @@ function renderPage(bills) {
         <div class="page-subtitle">Generate, send, and track monthly bills.</div>
       </div>
       <div class="page-actions">
+        <button class="btn btn-secondary" onclick="applyLateFees()">${icon('alert')}<span>Apply Late Fees</span></button>
         <button class="btn btn-secondary" onclick="openSendBillsModal(${bills.length})">${icon('send')}<span>Send Bills</span></button>
         <button class="btn btn-primary" onclick="openGenerateBillsModal()">${icon('plus')}<span>Generate Bills</span></button>
       </div>
@@ -108,6 +109,30 @@ function renderPage(bills) {
   document.getElementById('month-sel').addEventListener('change', (e) => { SELECTED_MONTH = parseInt(e.target.value); loadBilling(); });
   document.getElementById('year-sel').addEventListener('change', (e) => { SELECTED_YEAR = parseInt(e.target.value); loadBilling(); });
   document.getElementById('prop-sel').addEventListener('change', (e) => { SELECTED_PROPERTY = e.target.value; loadBilling(); });
+}
+
+/* ---- APPLY LATE FEES ---- */
+async function applyLateFees() {
+  if (!PROFILE?.late_penalty_type || PROFILE.late_penalty_type === 'none') {
+    showToast('Set up a late-fee policy first in Settings → Billing & Penalties', 'warning');
+    return;
+  }
+  const graceTxt = PROFILE.grace_period_days ? ` after a ${PROFILE.grace_period_days}-day grace period` : '';
+  const feeTxt = PROFILE.late_penalty_type === 'flat'
+    ? `${formatMoney(PROFILE.late_penalty_amount)} flat`
+    : `${PROFILE.late_penalty_amount}% of the outstanding balance`;
+  const ok = await confirmDialog({
+    title: 'Apply late fees',
+    message: `This charges a late fee of <strong>${feeTxt}</strong> to every overdue bill${graceTxt} that hasn't already been charged. Each bill is charged once. Continue?`,
+    confirmText: 'Apply late fees',
+  });
+  if (!ok) return;
+
+  const { data, error } = await sb.rpc('fn_apply_late_fees', { p_user_id: PROFILE.id });
+  if (error) { showToast(error.message, 'error'); return; }
+  const n = Number(data || 0);
+  showToast(n > 0 ? `Late fee applied to ${n} ${n === 1 ? 'bill' : 'bills'}` : 'No overdue bills needed a late fee', n > 0 ? 'success' : 'info');
+  loadBilling();
 }
 
 function renderBillRow(b) {

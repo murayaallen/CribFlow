@@ -302,6 +302,41 @@ end;
 $$;
 
 -- -----------------------------------------------------------------------------
+-- LATE FEES — apply each landlord's policy to overdue bills (one-time per bill).
+-- (See database/migrations/002_late_fees.sql for notes; scoping is by caller:
+--  auth.uid() for a landlord, NULL under the service role/cron = all landlords.)
+-- -----------------------------------------------------------------------------
+create or replace function fn_apply_late_fees(p_user_id uuid default null)
+returns int
+language plpgsql security definer set search_path = public as $$
+declare v_scope uuid; v_count int := 0; b record; fee numeric(10,2);
+begin
+  v_scope := coalesce(p_user_id, auth.uid());
+  for b in
+    select bl.id, bl.balance, pr.late_penalty_type, pr.late_penalty_amount
+      from bills bl
+      join rooms r      on r.id = bl.room_id
+      join properties p on p.id = r.property_id
+      join profiles pr  on pr.id = p.user_id
+     where bl.status in ('unpaid','partial')
+       and coalesce(bl.late_fee,0) = 0
+       and pr.late_penalty_type <> 'none'
+       and (bl.due_date + (coalesce(pr.grace_period_days,0) || ' days')::interval) < now()
+       and (v_scope is null or p.user_id = v_scope)
+  loop
+    if b.late_penalty_type = 'flat' then fee := b.late_penalty_amount;
+    elsif b.late_penalty_type = 'percent' then fee := round(b.balance * b.late_penalty_amount / 100.0, 2);
+    else fee := 0; end if;
+    if fee > 0 then
+      update bills set late_fee = fee, total_due = total_due + fee where id = b.id;
+      v_count := v_count + 1;
+    end if;
+  end loop;
+  return v_count;
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
 -- PAYMENT ALLOCATION — single source of truth for applying money to bills.
 -- (See database/migrations/001_payment_allocation.sql for the same logic as an
 --  idempotent migration + backfill for an already-deployed database.)
