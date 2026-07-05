@@ -59,35 +59,57 @@ router.post('/confirmation', async (req, res) => {
       return;
     }
 
-    // Try to match account number → room → tenant
-    // Account format: PREFIX-ROOMNAME (e.g., "SRC-A1")
-    let matchedTenant = null;
-    let matchedProperty = null;
+    // ---- MATCHING (scoped by the paybill the money was actually paid to) ----
+    // 1. Identify the landlord by BusinessShortCode == profiles.paybill_number.
+    //    This is the correct disambiguator: a payment can only ever match a
+    //    tenant belonging to the landlord who received it. Never match across
+    //    landlords by account prefix alone (prefixes aren't globally unique).
+    const businessShortcode = (payload.BusinessShortCode || '').toString().trim();
+    let matchedUserId = null;
+    let landlordPrefix = '';                       // profile-level fallback prefix
+    if (businessShortcode) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, account_prefix')
+        .eq('paybill_number', businessShortcode)
+        .maybeSingle();
+      if (profile) {
+        matchedUserId = profile.id;
+        landlordPrefix = (profile.account_prefix || '').toUpperCase();
+      } else {
+        console.warn(`[mpesa] no landlord for shortcode ${businessShortcode} (tx ${transId})`);
+      }
+    }
 
-    if (accountNumber.includes('-')) {
-      const [prefix, ...roomParts] = accountNumber.split('-');
+    // 2. Within that landlord only, match account (PREFIX-ROOM) → room → active tenant.
+    let matchedTenant = null;
+    if (matchedUserId && accountNumber.includes('-')) {
+      const [prefixRaw, ...roomParts] = accountNumber.split('-');
+      const prefix = prefixRaw.toUpperCase();
       const roomName = roomParts.join('-');
 
       const { data: properties } = await supabase
         .from('properties')
-        .select('id, user_id, account_prefix')
-        .ilike('account_prefix', prefix);
+        .select('id, account_prefix')
+        .eq('user_id', matchedUserId);
 
-      if (properties && properties.length > 0) {
-        for (const prop of properties) {
-          const { data: rooms } = await supabase
-            .from('rooms')
-            .select('id, name, tenants(id, full_name, status)')
-            .eq('property_id', prop.id)
-            .ilike('name', roomName);
-          if (rooms && rooms.length > 0) {
-            const room = rooms[0];
-            const activeTenant = (room.tenants || []).find(t => t.status === 'active');
-            if (activeTenant) {
-              matchedTenant = { ...activeTenant, room_id: room.id };
-              matchedProperty = prop;
-              break;
-            }
+      // A property's effective prefix is its own, or the landlord's profile prefix.
+      const candidates = (properties || []).filter(p =>
+        ((p.account_prefix || landlordPrefix || '').toUpperCase()) === prefix
+      );
+
+      for (const prop of candidates) {
+        const { data: rooms } = await supabase
+          .from('rooms')
+          .select('id, name, tenants(id, full_name, status)')
+          .eq('property_id', prop.id)
+          .ilike('name', roomName);
+        const room = (rooms || [])[0];
+        if (room) {
+          const activeTenant = (room.tenants || []).find(t => t.status === 'active');
+          if (activeTenant) {
+            matchedTenant = { ...activeTenant, room_id: room.id };
+            break;
           }
         }
       }
@@ -97,7 +119,7 @@ router.post('/confirmation', async (req, res) => {
     const { data: mpesaTx, error: insertErr } = await supabase
       .from('mpesa_transactions')
       .insert({
-        user_id: matchedProperty?.user_id || null,
+        user_id: matchedUserId,
         transaction_id: transId,
         transaction_type: payload.TransactionType,
         amount,
@@ -166,11 +188,26 @@ router.post('/confirmation', async (req, res) => {
 });
 
 /* =============================================================================
-   ADMIN — Register URLs with Safaricom
-   Run once after deploy. Requires admin auth in production!
+   ADMIN AUTH — require a secret bearer token (ADMIN_TOKEN in .env).
+   Protects the endpoints that talk to Safaricom on our behalf.
    ============================================================================= */
-router.post('/register-urls', async (req, res) => {
-  // TODO: Add admin auth check (e.g., bearer token from env)
+function requireAdmin(req, res, next) {
+  const token = process.env.ADMIN_TOKEN;
+  if (!token) {
+    return res.status(503).json({ error: 'Admin endpoints disabled (ADMIN_TOKEN not set)' });
+  }
+  const auth = req.headers.authorization || '';
+  if (auth !== `Bearer ${token}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+/* =============================================================================
+   ADMIN — Register URLs with Safaricom
+   Run once after deploy.
+   ============================================================================= */
+router.post('/register-urls', requireAdmin, async (req, res) => {
   try {
     const result = await daraja.registerUrls();
     res.json({ success: true, result });
@@ -183,8 +220,10 @@ router.post('/register-urls', async (req, res) => {
 /* =============================================================================
    ADMIN — Simulate a payment (sandbox only)
    ============================================================================= */
-router.post('/simulate', async (req, res) => {
-  // TODO: Add admin auth check
+router.post('/simulate', requireAdmin, async (req, res) => {
+  if (process.env.MPESA_ENV === 'production') {
+    return res.status(403).json({ error: 'Simulate is disabled in production' });
+  }
   try {
     const { amount, phone, accountNumber } = req.body;
     if (!amount || !phone || !accountNumber) {

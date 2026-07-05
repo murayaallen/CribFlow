@@ -15,8 +15,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ---- MIDDLEWARE ----
+// Lock CORS to the configured frontend origin. In production, refuse to fall
+// back to a wildcard (a wildcard with credentials is invalid and unsafe).
+const allowedOrigin = process.env.FRONTEND_URL
+  || (process.env.NODE_ENV === 'production' ? false : '*');
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: allowedOrigin,
   credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));

@@ -43,6 +43,11 @@ router.post('/bill', requireAuth, async (req, res) => {
       .single();
 
     if (error || !bill) return res.status(404).json({ error: 'Bill not found' });
+    // Ownership: the backend uses the service-role client (bypasses RLS), so we
+    // must verify this bill belongs to the authenticated caller.
+    if (bill.rooms?.properties?.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized for this bill' });
+    }
     if (!bill.tenants?.email) return res.status(400).json({ error: 'Tenant has no email' });
 
     // Get profile for paybill + business name
@@ -109,7 +114,11 @@ router.post('/receipt', requireAuth, async (req, res) => {
       .eq('id', payment_id)
       .single();
 
-    if (!payment || !payment.tenants?.email) {
+    if (!payment) return res.status(404).json({ error: 'Payment not found' });
+    if (payment.rooms?.properties?.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized for this payment' });
+    }
+    if (!payment.tenants?.email) {
       return res.status(400).json({ error: 'Payment or tenant email missing' });
     }
 
@@ -164,7 +173,11 @@ router.post('/reminder', requireAuth, async (req, res) => {
       .eq('id', bill_id)
       .single();
 
-    if (!bill || !bill.tenants?.email) {
+    if (!bill) return res.status(404).json({ error: 'Bill not found' });
+    if (bill.rooms?.properties?.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized for this bill' });
+    }
+    if (!bill.tenants?.email) {
       return res.status(400).json({ error: 'Bill or tenant email missing' });
     }
     if (Number(bill.balance) <= 0) return res.status(400).json({ error: 'Bill is already paid' });
