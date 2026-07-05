@@ -1,5 +1,5 @@
 -- =============================================================================
--- RentFlow — Row Level Security Policies
+-- CribFlow — Row Level Security Policies
 -- =============================================================================
 -- Run this AFTER schema.sql.
 -- Ensures landlords can only access their own data.

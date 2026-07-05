@@ -1,4 +1,4 @@
-RENTFLOW — HOW TO RUN
+CRIBFLOW — HOW TO RUN
 =====================
 
 OPTION 1 — Double-click START.bat  (requires Node.js or Python)
@@ -7,7 +7,7 @@ OPTION 1 — Double-click START.bat  (requires Node.js or Python)
               http://localhost:5500/index.html     (dashboard)
 
 OPTION 2 — VS Code + Live Server extension
-  1. Open the RentFlow-Web folder in VS Code
+  1. Open the CribFlow-Web folder in VS Code
   2. Click "Go Live" in the bottom bar
   3. Navigate to landing.html or auth.html
 

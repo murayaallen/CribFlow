@@ -1,5 +1,5 @@
 -- =============================================================================
--- RentFlow — Property Management System
+-- CribFlow — Property Management System
 -- Database Schema (Supabase / PostgreSQL)
 -- =============================================================================
 -- Run this in the Supabase SQL Editor on a fresh project.

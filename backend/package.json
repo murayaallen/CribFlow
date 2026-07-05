@@ -1,7 +1,7 @@
 {
-  "name": "rentflow-backend",
+  "name": "cribflow-backend",
   "version": "1.0.0",
-  "description": "RentFlow backend — M-Pesa Daraja, email, and reports",
+  "description": "CribFlow backend — M-Pesa Daraja, email, and reports",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {

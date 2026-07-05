@@ -1,5 +1,5 @@
 /**
- * RentFlow Backend Server
+ * CribFlow Backend Server
  * Express app handling M-Pesa Daraja callbacks and email sending.
  */
 require('dotenv').config();
@@ -44,7 +44,7 @@ app.get('/health', (req, res) => {
 
 app.get('/', (req, res) => {
   res.json({
-    name: 'RentFlow API',
+    name: 'CribFlow API',
     version: '1.0.0',
     status: 'running',
   });
@@ -72,7 +72,7 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log('');
   console.log('═══════════════════════════════════════════════');
-  console.log(`  RentFlow Backend running on port ${PORT}`);
+  console.log(`  CribFlow Backend running on port ${PORT}`);
   console.log('═══════════════════════════════════════════════');
   console.log(`  Health:    http://localhost:${PORT}/health`);
   console.log(`  Frontend:  ${process.env.FRONTEND_URL || 'not configured'}`);

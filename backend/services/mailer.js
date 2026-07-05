@@ -21,7 +21,7 @@ async function sendEmail({ to, subject, html, text }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     throw new Error('Gmail credentials not configured');
   }
-  const fromName = process.env.EMAIL_FROM_NAME || 'RentFlow';
+  const fromName = process.env.EMAIL_FROM_NAME || 'CribFlow';
   const info = await getTransporter().sendMail({
     from: `"${fromName}" <${process.env.GMAIL_USER}>`,
     to, subject, html, text,
@@ -36,7 +36,7 @@ const baseStyles = `
   line-height: 1.6; color: #1A1A17; max-width: 600px; margin: 0 auto;
 `;
 
-function wrap(content, businessName = 'RentFlow') {
+function wrap(content, businessName = 'CribFlow') {
   return `
   <!DOCTYPE html><html><body style="margin:0;padding:0;background:#FAFAF6">
     <table role="presentation" style="width:100%;background:#FAFAF6;padding:32px 16px"><tr><td>
@@ -46,7 +46,7 @@ function wrap(content, businessName = 'RentFlow') {
         </td></tr>
         <tr><td style="padding:32px">${content}</td></tr>
         <tr><td style="background:#F5F4EE;padding:18px 32px;font-size:12px;color:#8A877A;text-align:center;border-top:1px solid #E5E2D6">
-          Sent by ${businessName} · powered by RentFlow
+          Sent by ${businessName} · powered by CribFlow
         </td></tr>
       </table>
     </td></tr></table>

@@ -40,10 +40,10 @@ async function renderSidebar(activeId = '') {
     <aside class="sidebar" id="sidebar-el">
       <div class="sidebar-brand">
         <div class="sidebar-logo">
-          <img src="/images/rentflow-logo/rentflow-logo/rentflow-icon-white.svg" alt="RentFlow" style="width:100%;height:100%;object-fit:contain;" />
+          <img src="/images/rentflow-logo/rentflow-logo/rentflow-icon-white.svg" alt="CribFlow" style="width:100%;height:100%;object-fit:contain;" />
         </div>
         <div class="sidebar-brand-text">
-          <div class="sidebar-brand-name">RentFlow</div>
+          <div class="sidebar-brand-name">CribFlow</div>
           <div class="sidebar-brand-tag">Crafted for Kenya's landlords.</div>
         </div>
       </div>

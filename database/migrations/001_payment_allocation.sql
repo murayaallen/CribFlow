@@ -1,5 +1,5 @@
 -- =============================================================================
--- RentFlow — Migration 001: DB-side payment allocation
+-- CribFlow — Migration 001: DB-side payment allocation
 -- =============================================================================
 -- WHAT THIS DOES
 --   Replaces the old "one payment → one bill, sum payments per bill" model with

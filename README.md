@@ -1,4 +1,4 @@
-# RentFlow
+# CribFlow
 
 Property management for Kenyan landlords — track rent, water bills, and M-Pesa payments across all your properties from one calm dashboard.
 
@@ -247,7 +247,7 @@ Within seconds, the payment appears in the dashboard, the tenant's bill is updat
 - **No build step** — the frontend is intentionally framework-free. Edit a file, refresh the browser.
 - **Supabase JS client talks directly to the database** — for everything except M-Pesa and email, the frontend reads/writes Supabase directly. RLS policies keep landlords' data isolated.
 - **Backend only handles**: M-Pesa Daraja callbacks (which need a public HTTPS endpoint), email sending (needs SMTP credentials), and any future PDF generation.
-- **One landlord per account** — RentFlow is a personal tool, not multi-tenant SaaS. Each Supabase user is one landlord with their own properties.
+- **One landlord per account** — CribFlow is a personal tool, not multi-tenant SaaS. Each Supabase user is one landlord with their own properties.
 
 ---
 
