@@ -46,6 +46,9 @@ function renderPage(bills, payments) {
 
   const totalPaid = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
   const totalOwed = bills.reduce((s, b) => s + Number(b.balance || 0), 0);
+  const credit = Number(t.credit_balance || 0);
+  const netOwed = Math.max(0, totalOwed - credit);      // true running position
+  const openBillCount = bills.filter(b => b.balance > 0).length;
   const accountNumber = property ? `${property.account_prefix}-${room.name}` : '—';
 
   const today = new Date();
@@ -100,11 +103,26 @@ function renderPage(bills, payments) {
       </div>
     ` : ''}
 
+    ${credit > 0 ? `
+      <div class="card-elevated section" style="border-left: 3px solid var(--color-success)">
+        <div class="card-body" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap">
+          <div class="stat-card-icon" style="background: var(--color-success-bg); color: var(--color-success); width: 40px; height: 40px">${icon('wallet')}</div>
+          <div style="flex: 1; min-width: 200px">
+            <div style="font-weight: 600">${formatMoney(credit)} in unapplied credit</div>
+            <div style="font-size: 13px; color: var(--color-text-secondary)">From an overpayment. Apply it to an open bill or record a refund.</div>
+          </div>
+          ${openBillCount > 0 ? `<button class="btn btn-primary btn-sm" onclick="applyCredit()">${icon('check')}<span>Apply to bills</span></button>` : ''}
+          <button class="btn btn-secondary btn-sm" onclick="refundCredit()">${icon('logout')}<span>Record refund</span></button>
+        </div>
+      </div>
+    ` : ''}
+
     <!-- STATS -->
-    <section class="grid-3 section">
+    <section class="grid-4 section">
       ${renderStat('Monthly Rent', formatMoney(room?.monthly_rent || 0), 'wallet', 'Per month')}
       ${renderStat('Total Paid', formatMoney(totalPaid), 'check', `${payments.length} ${payments.length === 1 ? 'payment' : 'payments'}`)}
-      ${renderStat('Outstanding', formatMoney(totalOwed), 'alert', `${bills.filter(b => b.balance > 0).length} unpaid bills`, totalOwed > 0 ? 'warning' : '')}
+      ${renderStat('Outstanding', formatMoney(netOwed), 'alert', openBillCount ? `${openBillCount} unpaid ${openBillCount === 1 ? 'bill' : 'bills'}` : 'All settled', netOwed > 0 ? 'warning' : '')}
+      ${renderStat('Credit', formatMoney(credit), 'wallet', credit > 0 ? 'Available to apply' : 'None')}
     </section>
 
     <!-- PROFILE + ACCOUNT INFO -->
@@ -221,6 +239,42 @@ function renderPage(bills, payments) {
   `;
 
   document.getElementById('page-content').innerHTML = html;
+}
+
+/* ---- CREDIT RESOLUTION ---- */
+async function applyCredit() {
+  const t = CURRENT_TENANT;
+  const credit = Number(t.credit_balance || 0);
+  if (credit <= 0) { showToast('No credit to apply', 'info'); return; }
+  const ok = await confirmDialog({
+    title: 'Apply credit to bills',
+    message: `Apply <strong>${formatMoney(credit)}</strong> of credit to ${escapeHtml(t.full_name)}'s open bills, oldest first? Any leftover stays as credit.`,
+    confirmText: 'Apply credit',
+  });
+  if (!ok) return;
+  const { data, error } = await sb.rpc('fn_apply_credit', { p_tenant_id: t.id });
+  if (error) { showToast(error.message, 'error'); return; }
+  const applied = Number(data || 0);
+  showToast(applied > 0 ? `${formatMoney(applied)} applied to bills` : 'No open bills to apply credit to', applied > 0 ? 'success' : 'info');
+  loadTenant(t.id);
+}
+
+async function refundCredit() {
+  const t = CURRENT_TENANT;
+  const credit = Number(t.credit_balance || 0);
+  if (credit <= 0) { showToast('No credit to refund', 'info'); return; }
+  const ok = await confirmDialog({
+    title: 'Record a refund',
+    message: `Record that <strong>${formatMoney(credit)}</strong> of credit was refunded to ${escapeHtml(t.full_name)} in cash? This clears the credit — it does not move any money itself.`,
+    confirmText: 'Record refund',
+    danger: true,
+  });
+  if (!ok) return;
+  const { data, error } = await sb.rpc('fn_refund_credit', { p_tenant_id: t.id });
+  if (error) { showToast(error.message, 'error'); return; }
+  const refunded = Number(data || 0);
+  showToast(`${formatMoney(refunded)} recorded as refunded`, 'success');
+  loadTenant(t.id);
 }
 
 function renderStat(label, value, iconName, meta, accent = '') {

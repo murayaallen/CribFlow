@@ -180,6 +180,7 @@ create table public.payments (
   bill_id uuid references public.bills(id) on delete set null,  -- legacy hint; allocation is authoritative
   amount numeric(10,2) not null check (amount > 0),
   credited_amount numeric(10,2) not null default 0, -- portion banked to tenant credit (overpayment)
+  refunded_amount numeric(10,2) not null default 0, -- portion of credit later refunded in cash
   method text check (method in ('mpesa','bank','cash','other')) not null,
   mpesa_code text,                                  -- transaction code
   reference text,                                   -- bank ref, cash receipt no.
@@ -333,6 +334,103 @@ begin
     end if;
   end loop;
   return v_count;
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- CREDIT RESOLUTION — apply a tenant's overpayment credit to open bills, or
+-- record a cash refund. Preserves the per-payment ledger invariant:
+--   amount = Σ allocations + credited_amount + refunded_amount
+-- (See database/migrations/003_credit_resolution.sql for full notes.)
+-- -----------------------------------------------------------------------------
+create or replace function fn_assert_owns_tenant(p_tenant_id uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare v_owner uuid;
+begin
+  select p.user_id into v_owner
+    from tenants t
+    join rooms r      on r.id = t.room_id
+    join properties p on p.id = r.property_id
+   where t.id = p_tenant_id;
+  if v_owner is null then raise exception 'Tenant not found'; end if;
+  if auth.uid() is not null and v_owner <> auth.uid() then
+    raise exception 'Not authorized for this tenant';
+  end if;
+end;
+$$;
+
+create or replace function fn_apply_credit(p_tenant_id uuid, p_amount numeric default null)
+returns numeric
+language plpgsql security definer set search_path = public as $$
+declare
+  remaining numeric(10,2); applied numeric(10,2) := 0;
+  pay record; target_bill uuid; target_balance numeric(10,2); take numeric(10,2);
+begin
+  perform fn_assert_owns_tenant(p_tenant_id);
+  select coalesce(credit_balance,0) into remaining from tenants where id = p_tenant_id;
+  if p_amount is not null then remaining := least(remaining, p_amount); end if;
+  if remaining <= 0 then return 0; end if;
+
+  for pay in
+    select id, credited_amount from payments
+     where tenant_id = p_tenant_id and credited_amount > 0
+     order by payment_date, created_at for update
+  loop
+    exit when remaining <= 0;
+    declare pcredit numeric(10,2) := least(pay.credited_amount, remaining);
+    begin
+      while pcredit > 0 loop
+        select id, (total_due - total_paid) into target_bill, target_balance
+          from bills
+         where tenant_id = p_tenant_id and status <> 'void' and (total_due - total_paid) > 0
+         order by bill_year, bill_month limit 1 for update;
+        exit when target_bill is null;
+        take := least(pcredit, target_balance);
+        insert into payment_allocations (payment_id, bill_id, amount)
+          values (pay.id, target_bill, take)
+          on conflict (payment_id, bill_id) do update set amount = payment_allocations.amount + excluded.amount;
+        update payments set credited_amount = credited_amount - take where id = pay.id;
+        pcredit := pcredit - take; remaining := remaining - take; applied := applied + take;
+      end loop;
+    end;
+    exit when target_bill is null;
+  end loop;
+
+  if applied > 0 then
+    update tenants set credit_balance = greatest(0, coalesce(credit_balance,0) - applied) where id = p_tenant_id;
+  end if;
+  return applied;
+end;
+$$;
+
+create or replace function fn_refund_credit(p_tenant_id uuid, p_amount numeric default null)
+returns numeric
+language plpgsql security definer set search_path = public as $$
+declare remaining numeric(10,2); refunded numeric(10,2) := 0; pay record; take numeric(10,2);
+begin
+  perform fn_assert_owns_tenant(p_tenant_id);
+  select coalesce(credit_balance,0) into remaining from tenants where id = p_tenant_id;
+  if p_amount is not null then remaining := least(remaining, p_amount); end if;
+  if remaining <= 0 then return 0; end if;
+
+  for pay in
+    select id, credited_amount from payments
+     where tenant_id = p_tenant_id and credited_amount > 0
+     order by payment_date, created_at for update
+  loop
+    exit when remaining <= 0;
+    take := least(pay.credited_amount, remaining);
+    update payments set credited_amount = credited_amount - take,
+                        refunded_amount = refunded_amount + take
+     where id = pay.id;
+    remaining := remaining - take; refunded := refunded + take;
+  end loop;
+
+  if refunded > 0 then
+    update tenants set credit_balance = greatest(0, coalesce(credit_balance,0) - refunded) where id = p_tenant_id;
+  end if;
+  return refunded;
 end;
 $$;
 
