@@ -6,7 +6,7 @@ instead of supabase.com. This replaces the managed Pro plan (see
 `docs/SUPABASE-PLAN.md` for the managed comparison).
 
 > Trade-off we accept: **we own backups, security, updates, and uptime.** The
-> steps below make those explicit — don't skip §6 (backups).
+> steps below make those explicit — don't skip Step 7 (backups).
 
 ---
 
@@ -33,14 +33,35 @@ cd supabase/docker
 cp .env.example .env
 ```
 
-## Step 2 — Configure `.env` (the important part)
-Edit `/opt/supabase/docker/.env`:
-- `POSTGRES_PASSWORD` — a long random password.
-- `JWT_SECRET` — a random **string ≥ 40 chars**.
-- `ANON_KEY` and `SERVICE_ROLE_KEY` — JWTs signed with that `JWT_SECRET`.
-  Generate them with Supabase's key generator (self-hosting docs) or the CLI;
-  `ANON_KEY` has role `anon`, `SERVICE_ROLE_KEY` has role `service_role`.
-- `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD` — protects Studio.
+## Step 2 — Generate secrets (dependency-free)
+Run this on the VPS; it prints every secret you need. Copy them somewhere safe.
+```bash
+# base64url helper + HS256 JWT maker (uses only openssl)
+b64() { openssl base64 -e -A | tr '+/' '-_' | tr -d '='; }
+mkjwt() {  # $1=role  $2=secret
+  local hdr pl sig iat exp
+  hdr=$(printf '{"alg":"HS256","typ":"JWT"}' | b64)
+  iat=$(date +%s); exp=$((iat + 315360000))   # 10 years
+  pl=$(printf '{"role":"%s","iss":"supabase","iat":%s,"exp":%s}' "$1" "$iat" "$exp" | b64)
+  sig=$(printf '%s.%s' "$hdr" "$pl" | openssl dgst -sha256 -hmac "$2" -binary | b64)
+  printf '%s.%s.%s\n' "$hdr" "$pl" "$sig"
+}
+
+POSTGRES_PASSWORD=$(openssl rand -hex 24)
+JWT_SECRET=$(openssl rand -hex 32)
+DASHBOARD_PASSWORD=$(openssl rand -hex 12)
+
+echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD"
+echo "JWT_SECRET=$JWT_SECRET"
+echo "DASHBOARD_PASSWORD=$DASHBOARD_PASSWORD"
+echo "ANON_KEY=$(mkjwt anon "$JWT_SECRET")"
+echo "SERVICE_ROLE_KEY=$(mkjwt service_role "$JWT_SECRET")"
+```
+
+## Step 3 — Configure `.env`
+Edit `/opt/supabase/docker/.env` and paste the values from Step 2:
+- `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`,
+  `DASHBOARD_PASSWORD`; set `DASHBOARD_USERNAME=admin` (protects Studio).
 - URLs (use your API subdomain over HTTPS):
   - `SITE_URL=https://app.cribflow.co.ke`
   - `API_EXTERNAL_URL=https://db.cribflow.co.ke`
@@ -51,7 +72,7 @@ Edit `/opt/supabase/docker/.env`:
 
 Keep this `.env` secret (root-only perms). These keys are the crown jewels.
 
-## Step 3 — Launch
+## Step 4 — Launch
 ```bash
 docker compose pull
 docker compose up -d
@@ -59,13 +80,13 @@ docker compose ps        # all services "healthy"
 ```
 Studio is served via the gateway on port **8000** internally.
 
-## Step 4 — Put it behind HTTPS
+## Step 5 — Put it behind HTTPS
 Point `db.cribflow.co.ke` at the server and reverse-proxy **443 → 127.0.0.1:8000**
 (Kong). Use DirectAdmin's Nginx/Apache custom proxy or a standalone Nginx +
 Let's Encrypt. Result: `https://db.cribflow.co.ke` is the API URL the app uses.
 Firewall: allow 80/443 only; **block 5432 and 8000 from the public**.
 
-## Step 5 — Load our schema
+## Step 6 — Load our schema
 In Studio (`https://db.cribflow.co.ke` → SQL Editor), or via `psql`:
 1. Run `database/schema.sql`
 2. Run `database/policies.sql`
@@ -74,7 +95,7 @@ In Studio (`https://db.cribflow.co.ke` → SQL Editor), or via `psql`:
 Then Studio → Authentication → Providers → Email: enable; for early testing you
 may disable email confirmations.
 
-## Step 6 — BACKUPS (do not skip)
+## Step 7 — BACKUPS (do not skip)
 Self-hosting = our backups. Minimum:
 ```bash
 # nightly logical dump, kept 14 days, plus offsite copy
@@ -87,7 +108,7 @@ docker compose exec -T db pg_dump -U postgres --clean --if-exists postgres \
 - Test a restore before go-live.
 - Consider volume snapshots if your VPS provider offers them.
 
-## Step 7 — Wire the app to it
+## Step 8 — Wire the app to it
 - Frontend `frontend/js/config.js`:
   ```js
   SUPABASE_URL: 'https://db.cribflow.co.ke',
