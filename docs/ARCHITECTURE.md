@@ -249,20 +249,23 @@ direct path; the backend must re-check ownership because it runs privileged.
 
 ---
 
-## 9. Deployment topology (Supabase + VPS)
+## 9. Deployment topology (DirectAdmin + Supabase)
 
 ```
 Cloudflare/DNS
-   ├── app.cribflow… ──► Nginx ──► static frontend/           (TLS)
-   └── api.cribflow… ──► Nginx ──► PM2 → node backend/server.js (TLS)
-Supabase (managed Postgres, Auth, Storage) ── PITR/backups
+   ├── app.cribflow… ──► DirectAdmin public_html ──► static frontend/      (Let's Encrypt TLS)
+   └── api.cribflow… ──► DirectAdmin Node.js app (Passenger) ──► server.js  (Let's Encrypt TLS)
+Supabase (PAID/Pro — Postgres, Auth, Storage) ── daily backups + PITR
 Safaricom Daraja ── registered to api.cribflow…/api/mpesa/*
 ```
-- Frontend: static files on Nginx (or Pages/Netlify).
-- Backend: PM2 (`pm2 start server.js`, `pm2 save`, `pm2 startup`) behind Nginx.
-- DB: Supabase project "CRIB FLOW"; run `schema.sql` then `policies.sql`.
-- Config: frontend `config.js` → prod URLs; backend `.env` → service key + Daraja
-  + SMTP.
+- **Frontend**: static files in DirectAdmin `public_html` (optionally Cloudflare
+  CDN in front). `config.js` holds prod Supabase URL + anon key + `API_URL`.
+- **Backend**: DirectAdmin **Node.js app** feature (CloudLinux NodeJS Selector /
+  Passenger). Passenger manages the process (no PM2); env vars set in the app UI;
+  restart via `tmp/restart.txt`. `server.js` listens on `process.env.PORT`.
+- **DB**: Supabase project "CRIB FLOW" on **Pro** (no auto-pause, backups); run
+  `schema.sql` then `policies.sql`.
+- Full steps in `docs/DEPLOYMENT.md`; plan/scaling in `docs/SUPABASE-PLAN.md`.
 
 ---
 
@@ -281,7 +284,9 @@ Safaricom Daraja ── registered to api.cribflow…/api/mpesa/*
 
 ## 11. Automation / scheduled jobs (Phase 3)
 
-Run on the VPS (node-cron) or Supabase (pg_cron / Edge Function):
+Shared hosting doesn't favour long-lived in-process schedulers, so prefer
+**DirectAdmin Cron Jobs → a protected `/api/jobs/*` endpoint** (secret header),
+or Supabase **pg_cron** / an Edge Function:
 - Monthly **auto bill generation** for active tenants.
 - **Reminders** for overdue bills (`profiles.reminder_days`).
 - **Late-fee** accrual after grace period.
@@ -321,7 +326,8 @@ the *target*; the roadmap tracks *status*.
 ## 14. Open architectural decisions
 
 1. **Per-landlord M-Pesa credentials** for true multi-landlord SaaS (see §8).
-2. **Automation host:** node-cron on the VPS vs Supabase pg_cron/Edge Functions.
+2. **Automation host:** DirectAdmin cron → protected endpoint vs Supabase
+   pg_cron/Edge Functions.
 3. **Payments provider for plan upgrades** (subscriptions are display-only today).
 4. **Storage** for business logos / future documents (Supabase Storage bucket +
    policies).
