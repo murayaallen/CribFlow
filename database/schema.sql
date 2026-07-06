@@ -142,8 +142,10 @@ create index idx_water_room_period on public.water_readings(room_id, reading_yea
 -- =============================================================================
 create table public.bills (
   id uuid primary key default uuid_generate_v4(),
-  tenant_id uuid not null references public.tenants(id) on delete cascade,
-  room_id uuid not null references public.rooms(id) on delete cascade,
+  -- restrict: a tenant/room with financial history can NEVER be hard-deleted,
+  -- so bills are preserved. Removal is via soft-delete (tenant status / archive).
+  tenant_id uuid not null references public.tenants(id) on delete restrict,
+  room_id uuid not null references public.rooms(id) on delete restrict,
   bill_month int not null check (bill_month between 1 and 12),
   bill_year int not null,
   rent_amount numeric(10,2) not null default 0,
@@ -175,8 +177,9 @@ create index idx_bills_status on public.bills(status);
 -- =============================================================================
 create table public.payments (
   id uuid primary key default uuid_generate_v4(),
-  tenant_id uuid not null references public.tenants(id) on delete cascade,
-  room_id uuid not null references public.rooms(id) on delete cascade,
+  -- restrict: payment history is never destroyed by deleting a tenant/room.
+  tenant_id uuid not null references public.tenants(id) on delete restrict,
+  room_id uuid not null references public.rooms(id) on delete restrict,
   bill_id uuid references public.bills(id) on delete set null,  -- legacy hint; allocation is authoritative
   amount numeric(10,2) not null check (amount > 0),
   credited_amount numeric(10,2) not null default 0, -- portion banked to tenant credit (overpayment)

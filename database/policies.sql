@@ -35,6 +35,16 @@ create policy "users see own subscription" on subscriptions
   for select using (user_id = auth.uid());
 
 -- =============================================================================
+-- SOFT-DELETE ENFORCEMENT
+-- No DELETE policies are granted on properties / rooms / tenants /
+-- water_readings. With RLS enabled and no DELETE policy, hard deletes are
+-- denied through the API, so financial history (bills, payments, allocations)
+-- can never be wiped by a client. Removal is via soft-delete instead:
+--   properties.archived · tenants.status ('past'/'evicted') · move-out flow.
+-- (Financial FKs are also ON DELETE RESTRICT in schema.sql as defense-in-depth.)
+-- =============================================================================
+
+-- =============================================================================
 -- PROPERTIES
 -- =============================================================================
 create policy "users see own properties" on properties
@@ -43,8 +53,6 @@ create policy "users insert own properties" on properties
   for insert with check (user_id = auth.uid());
 create policy "users update own properties" on properties
   for update using (user_id = auth.uid());
-create policy "users delete own properties" on properties
-  for delete using (user_id = auth.uid());
 
 -- =============================================================================
 -- ROOMS (via property ownership)
@@ -59,10 +67,6 @@ create policy "users insert rooms in own properties" on rooms
   );
 create policy "users update own rooms" on rooms
   for update using (
-    property_id in (select id from properties where user_id = auth.uid())
-  );
-create policy "users delete own rooms" on rooms
-  for delete using (
     property_id in (select id from properties where user_id = auth.uid())
   );
 
@@ -93,14 +97,6 @@ create policy "users update own tenants" on tenants
       where p.user_id = auth.uid()
     )
   );
-create policy "users delete own tenants" on tenants
-  for delete using (
-    room_id in (
-      select r.id from rooms r
-      join properties p on p.id = r.property_id
-      where p.user_id = auth.uid()
-    )
-  );
 
 -- =============================================================================
 -- WATER READINGS
@@ -123,14 +119,6 @@ create policy "users insert own water readings" on water_readings
   );
 create policy "users update own water readings" on water_readings
   for update using (
-    room_id in (
-      select r.id from rooms r
-      join properties p on p.id = r.property_id
-      where p.user_id = auth.uid()
-    )
-  );
-create policy "users delete own water readings" on water_readings
-  for delete using (
     room_id in (
       select r.id from rooms r
       join properties p on p.id = r.property_id
