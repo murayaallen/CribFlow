@@ -10,12 +10,20 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../services/supabase');
 const daraja = require('../services/daraja');
+const { ipAllowlist, rateLimiter } = require('../middleware/security');
+
+// Public Safaricom callbacks: optional IP allowlist (MPESA_ALLOWED_IPS) +
+// a rate limit so the endpoints can't be flooded with forged payments.
+const callbackGuard = [
+  ipAllowlist('MPESA_ALLOWED_IPS'),
+  rateLimiter({ windowMs: 60_000, max: 120, name: 'mpesa-callback' }),
+];
 
 /* =============================================================================
    VALIDATION — Safaricom asks "should I accept this payment?"
    Respond within 10 seconds. ResultCode 0 = accept, anything else = reject.
    ============================================================================= */
-router.post('/validation', async (req, res) => {
+router.post('/validation', callbackGuard, async (req, res) => {
   console.log('[mpesa] validation:', JSON.stringify(req.body));
   // Always accept — match logic happens in confirmation
   res.json({
@@ -31,7 +39,7 @@ router.post('/validation', async (req, res) => {
      2. Try to match account number → tenant
      3. If matched, create payment row (trigger updates bill status)
    ============================================================================= */
-router.post('/confirmation', async (req, res) => {
+router.post('/confirmation', callbackGuard, async (req, res) => {
   // Always respond OK to Safaricom — even if our processing fails (we'll log and retry)
   res.json({ ResultCode: 0, ResultDesc: 'Confirmation received' });
 

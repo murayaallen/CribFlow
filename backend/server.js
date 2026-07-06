@@ -11,11 +11,20 @@ const path = require('path');
 const mpesaRoutes = require('./routes/mpesa');
 const emailRoutes = require('./routes/email');
 const jobRoutes = require('./routes/jobs');
+const { securityHeaders, requestId, rateLimiter } = require('./middleware/security');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Behind DirectAdmin/Nginx (Passenger) — trust the proxy so req.ip is the
+// real client IP (used by the rate limiter and M-Pesa IP allowlist).
+app.set('trust proxy', true);
+app.disable('x-powered-by');
+
 // ---- MIDDLEWARE ----
+app.use(securityHeaders);
+app.use(requestId);
+
 // Lock CORS to the configured frontend origin. In production, refuse to fall
 // back to a wildcard (a wildcard with credentials is invalid and unsafe).
 const allowedOrigin = process.env.FRONTEND_URL
@@ -27,12 +36,15 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging (simple)
+// Global rate limit (per IP). Callback/auth paths get their own tighter limits.
+app.use(rateLimiter({ windowMs: 60_000, max: 300, name: 'global' }));
+
+// Request logging with request id
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
-    console.log(`${new Date().toISOString()} ${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
+    console.log(`${new Date().toISOString()} ${req.id} ${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
   });
   next();
 });
