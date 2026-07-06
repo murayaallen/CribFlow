@@ -61,3 +61,30 @@ async function redirectIfAuthed() {
     window.location.href = '/index.html';
   }
 }
+
+/* =============================================================================
+   BACKEND API — authenticated calls to the Express server (email, etc.)
+   Attaches the current Supabase JWT so the backend can verify the caller.
+   ============================================================================= */
+async function apiPost(path, body) {
+  if (typeof CONFIG === 'undefined' || !CONFIG.API_URL) {
+    throw new Error('Backend API not configured (CONFIG.API_URL)');
+  }
+  const { data: { session } } = await sb.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('Not signed in');
+
+  const res = await fetch(`${CONFIG.API_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  let data = null;
+  try { data = await res.json(); } catch (_) { /* non-JSON response */ }
+  if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+  return data;
+}

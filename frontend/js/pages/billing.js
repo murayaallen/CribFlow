@@ -8,6 +8,7 @@ let SELECTED_YEAR = currentYear();
 let SELECTED_PROPERTY = 'all';
 let ALL_PROPERTIES = [];
 let PROFILE = null;
+let CURRENT_BILLS = [];   // bills currently rendered (for bulk email)
 
 (async function () {
   const user = await requireAuth();
@@ -40,6 +41,7 @@ async function loadBilling() {
 }
 
 function renderPage(bills) {
+  CURRENT_BILLS = bills;
   const totalDue = bills.reduce((s, b) => s + Number(b.total_due || 0), 0);
   const totalPaid = bills.reduce((s, b) => s + Number(b.total_paid || 0), 0);
   const totalBalance = totalDue - totalPaid;
@@ -135,6 +137,19 @@ async function applyLateFees() {
   loadBilling();
 }
 
+/* ---- SEND OVERDUE REMINDER ---- */
+async function sendReminder(billId, btn) {
+  if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner spinner-sm"></div>'; }
+  try {
+    await apiPost('/api/email/reminder', { bill_id: billId });
+    showToast('Reminder sent', 'success');
+  } catch (err) {
+    showToast(`Couldn't send reminder: ${err.message}`, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = icon('mail'); }
+  }
+}
+
 function renderBillRow(b) {
   const prevBal = Number(b.previous_balance || 0);
   const lateFee = Number(b.late_fee || 0);
@@ -162,6 +177,7 @@ function renderBillRow(b) {
       <td>
         <div style="display: flex; gap: 4px; justify-content: flex-end">
           ${Number(b.balance) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="openRecordPaymentModal('${b.id}', '${b.tenant_id}', '${b.room_id}', ${b.balance})">${icon('plus')}<span>Pay</span></button>` : ''}
+          ${Number(b.balance) > 0 && b.tenants?.email ? `<button class="btn btn-ghost btn-sm" title="Email reminder" onclick="sendReminder('${b.id}', this)">${icon('mail')}</button>` : ''}
           <button class="btn btn-ghost btn-sm" onclick="window.location.href='/tenant-detail.html?id=${b.tenant_id}'">${icon('externalLink')}</button>
         </div>
       </td>
@@ -389,26 +405,46 @@ async function openSendBillsModal(billCount) {
     showToast('Generate bills first', 'warning');
     return;
   }
+  const withEmail = CURRENT_BILLS.filter(b => b.tenants?.email);
+  const noEmail = CURRENT_BILLS.length - withEmail.length;
+
   const content = `
     <p style="font-size: 14px; color: var(--color-text-secondary); line-height: 1.6">
-      Email the bill to every tenant for <strong>${fullMonthName(SELECTED_MONTH)} ${SELECTED_YEAR}</strong>. Tenants without an email address will be skipped.
+      Email the bill to every tenant for <strong>${fullMonthName(SELECTED_MONTH)} ${SELECTED_YEAR}</strong>.
+      <strong>${withEmail.length}</strong> ${withEmail.length === 1 ? 'tenant has' : 'tenants have'} an email address${noEmail > 0 ? `; ${noEmail} without one will be skipped` : ''}.
     </p>
-    <div style="background: var(--color-info-bg); padding: 12px 14px; border-radius: var(--radius-md); margin-top: 16px; font-size: 13px; color: var(--color-info)">
-      ${icon('info')} The email-sending backend isn't connected yet. This action will mark the bills as "sent" but no actual email will be delivered until you configure SMTP in Settings → Email.
-    </div>
+    <div id="send-progress" style="margin-top: 16px; font-size: 13px; color: var(--color-text-secondary)"></div>
   `;
   const footer = `
     <button class="btn btn-secondary" id="cancel-send">Cancel</button>
-    <button class="btn btn-primary" id="confirm-send">${icon('send')}<span>Mark as Sent</span></button>
+    <button class="btn btn-primary" id="confirm-send" ${withEmail.length === 0 ? 'disabled' : ''}>${icon('send')}<span>Send ${withEmail.length} ${withEmail.length === 1 ? 'Bill' : 'Bills'}</span></button>
   `;
   const { close } = openModal(content, { title: 'Send bills by email', footer });
   document.getElementById('cancel-send').addEventListener('click', close);
+
   document.getElementById('confirm-send').addEventListener('click', async () => {
-    const { error } = await sb.from('bills').update({ email_sent_at: new Date().toISOString() })
-      .eq('bill_month', SELECTED_MONTH).eq('bill_year', SELECTED_YEAR);
-    if (error) { showToast(error.message, 'error'); return; }
+    const btn = document.getElementById('confirm-send');
+    const progress = document.getElementById('send-progress');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner spinner-sm" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></div><span>Sending…</span>';
+
+    let sent = 0, failed = 0;
+    for (let i = 0; i < withEmail.length; i++) {
+      const b = withEmail[i];
+      progress.textContent = `Sending ${i + 1} of ${withEmail.length}…`;
+      try {
+        await apiPost('/api/email/bill', { bill_id: b.id });
+        sent++;
+      } catch (err) {
+        failed++;
+        console.error('[send bill]', b.id, err.message);
+      }
+    }
+
     close();
-    showToast('Bills marked as sent', 'success');
+    if (failed === 0) showToast(`Sent ${sent} ${sent === 1 ? 'bill' : 'bills'}`, 'success');
+    else showToast(`Sent ${sent}, ${failed} failed — check backend/email config`, failed < withEmail.length ? 'warning' : 'error');
+    loadBilling();
   });
 }
 

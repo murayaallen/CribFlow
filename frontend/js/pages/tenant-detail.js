@@ -221,7 +221,12 @@ function renderPage(bills, payments) {
                   <td><span class="badge badge-primary">${p.method.toUpperCase()}</span></td>
                   <td style="font-family: var(--font-mono); font-size: 12px">${escapeHtml(p.mpesa_code || p.reference || '—')}</td>
                   <td class="numeric" style="font-weight: 600; color: var(--color-success)">+${formatMoney(p.amount)}</td>
-                  <td><button class="btn btn-ghost btn-sm" title="Print receipt" onclick="printTenantReceipt(${idx})">${icon('receipt')}</button></td>
+                  <td>
+                    <div style="display:flex; gap:4px; justify-content:flex-end">
+                      <button class="btn btn-ghost btn-sm" title="Print receipt" onclick="printTenantReceipt(${idx})">${icon('receipt')}</button>
+                      ${t.email ? `<button class="btn btn-ghost btn-sm" title="Email receipt" onclick="emailReceipt('${p.id}', this)">${icon('mail')}</button>` : ''}
+                    </div>
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
@@ -437,6 +442,18 @@ async function openMoveOutModal() {
 }
 
 /* ---- RECEIPT FROM TENANT PAGE ---- */
+async function emailReceipt(paymentId, btn) {
+  if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner spinner-sm"></div>'; }
+  try {
+    await apiPost('/api/email/receipt', { payment_id: paymentId });
+    showToast('Receipt emailed', 'success');
+  } catch (err) {
+    showToast(`Couldn't email receipt: ${err.message}`, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = icon('mail'); }
+  }
+}
+
 function printTenantReceipt(idx) {
   const p = TENANT_PAYMENTS[idx];
   if (!p) return;
