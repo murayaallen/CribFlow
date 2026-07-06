@@ -10,6 +10,7 @@ const path = require('path');
 
 const mpesaRoutes = require('./routes/mpesa');
 const emailRoutes = require('./routes/email');
+const jobRoutes = require('./routes/jobs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -57,6 +58,7 @@ app.get('/', (req, res) => {
 // ---- ROUTES ----
 app.use('/api/mpesa', mpesaRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/jobs', jobRoutes);
 
 // ---- ERROR HANDLER ----
 app.use((err, req, res, next) => {

@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../services/supabase');
 const mailer = require('../services/mailer');
+const notify = require('../services/notify');
 
 /* =============================================================================
    AUTH MIDDLEWARE — verify Supabase JWT
@@ -185,38 +186,7 @@ router.post('/reminder', requireAuth, async (req, res) => {
     const { data: profile } = await supabase.from('profiles').select('*')
       .eq('id', bill.rooms.properties.user_id).single();
 
-    const dueDate = new Date(bill.due_date);
-    const daysOverdue = Math.max(0, Math.ceil((Date.now() - dueDate.getTime()) / (1000 * 60 * 60 * 24)));
-    const accountNumber = `${bill.rooms.properties.account_prefix}-${bill.rooms.name}`;
-    const period = monthName(bill.bill_month) + ' ' + bill.bill_year;
-
-    const html = mailer.reminderTemplate({
-      tenantName: bill.tenants.full_name,
-      period,
-      balance: Number(bill.balance).toLocaleString('en-KE'),
-      dueDate: dueDate.toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' }),
-      daysOverdue,
-      accountNumber,
-      paybillNumber: profile?.paybill_number,
-      businessName: profile?.business_name || profile?.full_name || 'Property Manager',
-    });
-
-    await mailer.sendEmail({
-      to: bill.tenants.email,
-      subject: `Friendly reminder: ${formatMoney(bill.balance)} outstanding for ${period}`,
-      html,
-    });
-
-    await supabase.from('email_logs').insert({
-      user_id: req.user.id,
-      tenant_id: bill.tenant_id,
-      bill_id: bill.id,
-      recipient_email: bill.tenants.email,
-      email_type: 'reminder',
-      subject: `Friendly reminder: ${formatMoney(bill.balance)} outstanding`,
-      status: 'sent',
-      sent_at: new Date().toISOString(),
-    });
+    await notify.sendReminderForBill(bill, profile);
 
     res.json({ success: true });
   } catch (err) {

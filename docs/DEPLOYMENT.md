@@ -115,12 +115,24 @@ NodeJS Selector).
 
 ## 5. Scheduled jobs (Phase 3) — the DirectAdmin way
 
-Shared hosting doesn't love long-lived in-process schedulers. Instead:
-- Add a **protected** endpoint (e.g. `POST /api/jobs/run` guarded by a secret
-  header), then use **DirectAdmin → Cron Jobs** to `curl` it on a schedule
-  (monthly bill generation, daily reminders, daily late-fee accrual).
-- Alternative: Supabase **pg_cron** / an Edge Function if you prefer the jobs
-  next to the data. Decide in Phase 3.
+Shared hosting doesn't love long-lived in-process schedulers, so the backend
+exposes **protected `/api/jobs/*` endpoints** (guarded by `CRON_TOKEN` via the
+`X-Cron-Token` header). Set `CRON_TOKEN` in the backend env, then add
+**DirectAdmin → Cron Jobs**:
+
+```bash
+# Daily ~06:00 — accrue late fees on overdue bills (one-time per bill)
+curl -fsS -X POST https://api.cribflow.co.ke/api/jobs/apply-late-fees \
+  -H "X-Cron-Token: $CRON_TOKEN"
+
+# Daily ~08:00 — email reminders for overdue bills (respects reminder_days,
+# won't re-send within 7 days)
+curl -fsS -X POST https://api.cribflow.co.ke/api/jobs/send-reminders \
+  -H "X-Cron-Token: $CRON_TOKEN"
+```
+Both are idempotent and safe to run daily. (Monthly auto bill-generation will be
+added as `/api/jobs/generate-bills` once the money logic is validated on the live
+DB.) Alternative: Supabase **pg_cron** if you prefer jobs next to the data.
 
 ---
 
