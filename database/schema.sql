@@ -6,8 +6,7 @@
 -- After running, run policies.sql to enable Row Level Security.
 -- =============================================================================
 
--- Enable UUID generation
-create extension if not exists "uuid-ossp";
+-- UUIDs: gen_random_uuid() is built into Postgres 13+ (no extension needed).
 
 -- =============================================================================
 -- 1. PROFILES (extends Supabase auth.users with landlord info)
@@ -33,7 +32,7 @@ create table public.profiles (
 -- One row per user, created automatically on signup (see handle_new_user).
 -- =============================================================================
 create table public.subscriptions (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references public.profiles(id) on delete cascade,
   plan text not null check (plan in ('free','basic','pro')) default 'free',
   status text not null check (status in ('active','past_due','canceled')) default 'active',
@@ -51,7 +50,7 @@ create index idx_subscriptions_user on public.subscriptions(user_id);
 -- 2. PROPERTIES
 -- =============================================================================
 create table public.properties (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
   name text not null,
   address text,
@@ -71,7 +70,7 @@ create index idx_properties_user on public.properties(user_id);
 -- 3. ROOMS / UNITS
 -- =============================================================================
 create table public.rooms (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   property_id uuid not null references public.properties(id) on delete cascade,
   name text not null,                               -- A1, B2, Room 3, etc.
   unit_type text,                                   -- bedsitter, 1br, 2br, single, etc.
@@ -90,7 +89,7 @@ create index idx_rooms_name_lower on public.rooms(property_id, lower(name));   -
 -- 4. TENANTS
 -- =============================================================================
 create table public.tenants (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   room_id uuid not null references public.rooms(id) on delete cascade,
   full_name text not null,
   national_id text,
@@ -120,7 +119,7 @@ create unique index idx_one_active_tenant_per_room
 -- 5. WATER READINGS
 -- =============================================================================
 create table public.water_readings (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   room_id uuid not null references public.rooms(id) on delete cascade,
   reading_month int not null check (reading_month between 1 and 12),
   reading_year int not null,
@@ -141,7 +140,7 @@ create index idx_water_room_period on public.water_readings(room_id, reading_yea
 -- 6. MONTHLY BILLS
 -- =============================================================================
 create table public.bills (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   -- restrict: a tenant/room with financial history can NEVER be hard-deleted,
   -- so bills are preserved. Removal is via soft-delete (tenant status / archive).
   tenant_id uuid not null references public.tenants(id) on delete restrict,
@@ -176,7 +175,7 @@ create index idx_bills_status on public.bills(status);
 -- 7. PAYMENTS
 -- =============================================================================
 create table public.payments (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   -- restrict: payment history is never destroyed by deleting a tenant/room.
   tenant_id uuid not null references public.tenants(id) on delete restrict,
   room_id uuid not null references public.rooms(id) on delete restrict,
@@ -204,7 +203,7 @@ create unique index idx_payments_mpesa_code on public.payments(mpesa_code) where
 -- bills.total_paid is always recomputed from these rows (see triggers below).
 -- =============================================================================
 create table public.payment_allocations (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   payment_id uuid not null references public.payments(id) on delete cascade,
   bill_id    uuid not null references public.bills(id)    on delete cascade,
   amount     numeric(10,2) not null check (amount > 0),
@@ -219,7 +218,7 @@ create index idx_alloc_bill    on public.payment_allocations(bill_id);
 -- 8. M-PESA TRANSACTIONS (raw Daraja callbacks)
 -- =============================================================================
 create table public.mpesa_transactions (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid references public.profiles(id) on delete cascade,
   transaction_id text unique not null,              -- M-Pesa code (idempotency)
   transaction_type text,                            -- Pay Bill, Buy Goods, etc.
@@ -245,7 +244,7 @@ create index idx_mpesa_account_lower on public.mpesa_transactions(lower(account_
 -- 9. EMAIL LOGS
 -- =============================================================================
 create table public.email_logs (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
   tenant_id uuid references public.tenants(id) on delete set null,
   bill_id uuid references public.bills(id) on delete set null,

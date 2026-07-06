@@ -27,7 +27,7 @@ begin;
 -- 1. New table + payment bookkeeping column
 -- -----------------------------------------------------------------------------
 create table if not exists public.payment_allocations (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   payment_id uuid not null references public.payments(id) on delete cascade,
   bill_id    uuid not null references public.bills(id)    on delete cascade,
   amount     numeric(10,2) not null check (amount > 0),
