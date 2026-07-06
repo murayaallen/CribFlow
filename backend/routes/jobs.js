@@ -39,6 +39,31 @@ router.post('/apply-late-fees', requireCron, async (req, res) => {
 });
 
 /* =============================================================================
+   Generate this month's bills for all active tenants who don't have one yet.
+   Optional body: { month, year, due_day } — defaults to the current month and
+   a due day of 5. Idempotent (skips tenants already billed for the period).
+   ============================================================================= */
+router.post('/generate-bills', requireCron, async (req, res) => {
+  try {
+    const now = new Date();
+    const month = Number(req.body?.month) || (now.getMonth() + 1);
+    const year = Number(req.body?.year) || now.getFullYear();
+    const dueDay = Math.min(28, Math.max(1, Number(req.body?.due_day) || 5));
+    const dueDate = `${year}-${String(month).padStart(2, '0')}-${String(dueDay).padStart(2, '0')}`;
+
+    const { data, error } = await supabase.rpc('fn_generate_monthly_bills', {
+      p_month: month, p_year: year, p_due_date: dueDate, p_user_id: null,
+    });
+    if (error) throw error;
+    console.log(`[jobs] generate-bills ${month}/${year} created ${data} bill(s)`);
+    res.json({ success: true, generated: data, period: `${month}/${year}`, due_date: dueDate });
+  } catch (err) {
+    console.error('[jobs] generate-bills error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =============================================================================
    Email reminders for overdue bills. For each landlord, a bill is due for a
    reminder once today >= due_date + reminder_days, and we don't re-send if a
    reminder was already logged for it in the last 7 days.

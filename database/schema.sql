@@ -340,6 +340,45 @@ end;
 $$;
 
 -- -----------------------------------------------------------------------------
+-- MONTHLY BILL GENERATION — create bills for active tenants who don't have one
+-- for the period. rent (from room) + water (from that period's reading).
+-- Scoped by caller: auth.uid() for a landlord; NULL under service role = all.
+-- (Mirrors the UI "Generate Bills" logic; used by /api/jobs/generate-bills.)
+-- -----------------------------------------------------------------------------
+create or replace function fn_generate_monthly_bills(
+  p_month int, p_year int, p_due_date date, p_user_id uuid default null)
+returns int
+language plpgsql security definer set search_path = public as $$
+declare v_scope uuid; v_count int := 0; t record; v_water numeric(10,2); v_reading uuid; v_rent numeric(10,2);
+begin
+  v_scope := coalesce(p_user_id, auth.uid());
+  for t in
+    select tn.id as tenant_id, tn.room_id, rm.monthly_rent
+      from tenants tn
+      join rooms rm      on rm.id = tn.room_id
+      join properties p  on p.id = rm.property_id
+     where tn.status = 'active'
+       and (v_scope is null or p.user_id = v_scope)
+       and not exists (select 1 from bills b
+                        where b.tenant_id = tn.id and b.bill_month = p_month and b.bill_year = p_year)
+  loop
+    select id, amount_due into v_reading, v_water
+      from water_readings
+     where room_id = t.room_id and reading_month = p_month and reading_year = p_year
+     limit 1;
+    v_water := coalesce(v_water, 0);
+    v_rent  := coalesce(t.monthly_rent, 0);
+    insert into bills (tenant_id, room_id, bill_month, bill_year, rent_amount,
+                       water_amount, water_reading_id, total_due, due_date, status)
+      values (t.tenant_id, t.room_id, p_month, p_year, v_rent,
+              v_water, v_reading, v_rent + v_water, p_due_date, 'unpaid');
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
 -- CREDIT RESOLUTION — apply a tenant's overpayment credit to open bills, or
 -- record a cash refund. Preserves the per-payment ledger invariant:
 --   amount = Σ allocations + credited_amount + refunded_amount

@@ -129,10 +129,15 @@ curl -fsS -X POST https://api.cribflow.co.ke/api/jobs/apply-late-fees \
 # won't re-send within 7 days)
 curl -fsS -X POST https://api.cribflow.co.ke/api/jobs/send-reminders \
   -H "X-Cron-Token: $CRON_TOKEN"
+
+# Monthly, 1st ~00:30 — generate this month's bills for all active tenants
+# (rent + water from readings; skips tenants already billed). Optional body:
+# {"month":7,"year":2026,"due_day":5}
+curl -fsS -X POST https://api.cribflow.co.ke/api/jobs/generate-bills \
+  -H "X-Cron-Token: $CRON_TOKEN"
 ```
-Both are idempotent and safe to run daily. (Monthly auto bill-generation will be
-added as `/api/jobs/generate-bills` once the money logic is validated on the live
-DB.) Alternative: Supabase **pg_cron** if you prefer jobs next to the data.
+All three are idempotent and safe to re-run. Alternative: Supabase **pg_cron**
+if you prefer jobs next to the data.
 
 ---
 
