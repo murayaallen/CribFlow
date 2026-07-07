@@ -242,10 +242,16 @@ direct path; the backend must re-check ownership because it runs privileged.
   `max_properties`, `max_rooms_per_property`, and `features` flags. Created
   automatically on signup (default free). Enforced today for property count;
   extend to rooms/features as needed.
-- **Open item:** the backend currently holds **one** set of Daraja credentials
-  in `.env`. Serving many landlords with their own paybills requires per-landlord
-  Daraja credentials in the DB and confirmation routing by shortcode. Fine for
-  the first/single landlord; design before onboarding multiple paying landlords.
+- **Multi-landlord M-Pesa (built):** each landlord connects their **own paybill**
+  via **Settings → M-Pesa** (`/api/mpesa/connect`): they supply their paybill +
+  Daraja Consumer Key/Secret, we register the **shared** platform callback URL
+  for *their* shortcode, store connection state in `landlord_mpesa` (server-only
+  RLS), and set `profiles.paybill_number`. The **secret is never stored** — used
+  once to register, then discarded (receiving C2B needs no creds). One backend +
+  one callback URL serves all landlords; the confirmation handler routes each
+  payment by `BusinessShortCode → profiles.paybill_number`. Money settles
+  **directly** to each landlord — CribFlow is never an intermediary (no
+  PSP/settlement burden). `profiles.paybill_number` is uniquely indexed.
 
 ---
 
