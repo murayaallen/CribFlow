@@ -8,6 +8,9 @@
 -- Enable RLS on every table
 alter table profiles enable row level security;
 alter table subscriptions enable row level security;
+-- landlord_mpesa: server-only. RLS on with NO policies => only the backend
+-- service-role key can read/write it (holds M-Pesa connection state).
+alter table landlord_mpesa enable row level security;
 alter table properties enable row level security;
 alter table rooms enable row level security;
 alter table tenants enable row level security;

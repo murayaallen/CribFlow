@@ -179,72 +179,140 @@ async function saveProfile(e) {
   showToast('Profile updated', 'success');
 }
 
-/* ---- M-PESA TAB ---- */
+/* ---- M-PESA TAB (self-service connect wizard) ---- */
 function renderMpesaTab() {
   const p = CURRENT_PROFILE;
   setTimeout(() => {
-    document.getElementById('mpesa-form')?.addEventListener('submit', saveMpesa);
+    loadMpesaStatus();
+    document.getElementById('mpesa-connect-form')?.addEventListener('submit', connectMpesa);
+    document.getElementById('prefix-form')?.addEventListener('submit', saveMpesaPrefix);
   }, 0);
   return `
     <div class="card-elevated">
-      <div class="card-header"><div class="card-title">M-Pesa Paybill Configuration</div></div>
+      <div class="card-header"><div class="card-title">M-Pesa Connection</div></div>
       <div class="card-body">
-        <div style="background: var(--color-info-bg); padding: 14px; border-radius: var(--radius-md); margin-bottom: 24px; font-size: 13px; color: var(--color-info); line-height: 1.6">
-          ${icon('info')} <strong>How M-Pesa integration works:</strong> Tenants pay your <strong>Paybill number</strong> using <strong>PREFIX-UNIT</strong> as the account number (e.g., <code>SRC-A1</code>). Payments auto-match to the right tenant. You'll need to register validation/confirmation URLs with Safaricom Daraja for live mode.
+        <div style="background: var(--color-info-bg); padding: 14px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 13px; color: var(--color-info); line-height: 1.6">
+          ${icon('info')} <strong>How it works:</strong> tenants pay <strong>your own paybill</strong> using <strong>PREFIX-UNIT</strong> as the account number (e.g. <code>SRC-A1</code>). Money goes straight to you — CribFlow just records it and matches it to the right tenant. Connect once below and we register the payment-notification URL with Safaricom for you.
         </div>
 
-        <form id="mpesa-form">
-          <div class="form-group">
-            <label class="label" for="mp-paybill">Paybill / Till number</label>
-            <input class="input" id="mp-paybill" value="${escapeHtml(p.paybill_number || '')}" placeholder="e.g. 247247" />
-            <div class="input-help">Your registered M-Pesa Paybill or Till number.</div>
-          </div>
+        <div id="mpesa-status" style="margin-bottom: 20px"></div>
 
-          <div class="form-group">
-            <label class="label" for="mp-default-prefix">Default account prefix</label>
-            <input class="input" id="mp-default-prefix" value="${escapeHtml(p.account_prefix || '')}" placeholder="e.g. RNT" maxlength="6" style="text-transform: uppercase" />
-            <div class="input-help">Used as a fallback when a property doesn't have its own prefix.</div>
+        <form id="mpesa-connect-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label label-required" for="mp-paybill">Paybill number</label>
+              <input class="input" id="mp-paybill" value="${escapeHtml(p.paybill_number || '')}" placeholder="e.g. 247247" required />
+            </div>
+            <div class="form-group">
+              <label class="label" for="mp-env">Environment</label>
+              <select class="select" id="mp-env">
+                <option value="production">Production (live paybill)</option>
+                <option value="sandbox">Sandbox (testing)</option>
+              </select>
+            </div>
           </div>
-
-          <div style="display: flex; justify-content: flex-end; margin-top: 24px">
-            <button type="submit" class="btn btn-primary">${icon('check')}<span>Save M-Pesa Settings</span></button>
+          <div class="form-group">
+            <label class="label label-required" for="mp-ckey">Daraja Consumer Key</label>
+            <input class="input" id="mp-ckey" placeholder="from developer.safaricom.co.ke → your app" required autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label class="label label-required" for="mp-csecret">Daraja Consumer Secret</label>
+            <input class="input" id="mp-csecret" type="password" placeholder="used once to register, then discarded" required autocomplete="off" />
+            <div class="input-help">We use this once to register your callback URL with Safaricom, then discard it — it is never stored.</div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; margin-top: 8px">
+            <button type="submit" class="btn btn-primary" id="mp-connect-btn">${icon('link')}<span>Connect &amp; Register</span></button>
           </div>
         </form>
       </div>
     </div>
 
     <div class="card-elevated section" style="margin-top: 20px">
-      <div class="card-header"><div class="card-title">Daraja API Keys</div></div>
+      <div class="card-header"><div class="card-title">Default account prefix</div></div>
       <div class="card-body">
-        <p style="font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 16px">
-          API credentials are stored securely on the backend (in <code>.env</code>) — not in the database. Edit them in your <code>backend/.env</code> file:
-        </p>
-        <pre style="background: var(--color-surface-2); padding: 16px; border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 12px; line-height: 1.7; overflow-x: auto; color: var(--color-text-secondary)">MPESA_CONSUMER_KEY=...
-MPESA_CONSUMER_SECRET=...
-MPESA_SHORTCODE=...
-MPESA_PASSKEY=...
-MPESA_ENV=sandbox    # or "production"
-MPESA_VALIDATION_URL=https://yourdomain.com/api/mpesa/validation
-MPESA_CONFIRMATION_URL=https://yourdomain.com/api/mpesa/confirmation</pre>
-        <p style="font-size: 13px; color: var(--color-text-muted); margin-top: 12px">
-          See the <code>README.md</code> for full M-Pesa setup instructions.
-        </p>
+        <form id="prefix-form">
+          <div class="form-group">
+            <label class="label" for="mp-default-prefix">Default account prefix</label>
+            <input class="input" id="mp-default-prefix" value="${escapeHtml(p.account_prefix || '')}" placeholder="e.g. RNT" maxlength="6" style="text-transform: uppercase" />
+            <div class="input-help">Used as a fallback when a property doesn't have its own prefix.</div>
+          </div>
+          <div style="display: flex; justify-content: flex-end">
+            <button type="submit" class="btn btn-secondary">${icon('check')}<span>Save prefix</span></button>
+          </div>
+        </form>
       </div>
     </div>
   `;
 }
 
-async function saveMpesa(e) {
+async function loadMpesaStatus() {
+  const el = document.getElementById('mpesa-status');
+  if (!el) return;
+  try {
+    const s = await apiGet('/api/mpesa/status');
+    if (s.registration_status === 'registered') {
+      el.innerHTML = `<div style="background: var(--color-success-bg); border: 1px solid var(--color-success-border, #BBF7D0); padding: 12px 14px; border-radius: var(--radius-md); font-size: 13px; color: var(--color-success); display: flex; align-items: center; gap: 10px">
+        ${icon('checkCircle')}<div style="flex: 1"><strong>Connected</strong> — Paybill ${escapeHtml(s.paybill_number || '')} (${escapeHtml(s.environment || '')})${s.registered_at ? ` · registered ${formatDate(s.registered_at, 'short')}` : ''}</div>
+        <button class="btn btn-secondary btn-sm" id="mp-disconnect">Disconnect</button></div>`;
+      document.getElementById('mp-disconnect')?.addEventListener('click', disconnectMpesa);
+    } else if (s.registration_status === 'failed') {
+      el.innerHTML = `<div style="background: var(--color-danger-bg); border: 1px solid #FCA5A5; padding: 12px 14px; border-radius: var(--radius-md); font-size: 13px; color: var(--color-danger)">
+        ${icon('alert')} <strong>Last attempt failed.</strong> ${escapeHtml(s.last_error || '')} — check your credentials and try again.</div>`;
+    } else {
+      el.innerHTML = `<div style="font-size: 13px; color: var(--color-text-muted)">${icon('info')} Not connected yet. Enter your paybill and Daraja credentials below to start receiving M-Pesa payments.</div>`;
+    }
+  } catch (err) {
+    el.innerHTML = `<div style="font-size: 13px; color: var(--color-text-muted)">Couldn't reach the backend (${escapeHtml(err.message)}). Make sure the API server is running.</div>`;
+  }
+}
+
+async function connectMpesa(e) {
+  e.preventDefault();
+  const paybill = document.getElementById('mp-paybill').value.trim();
+  const consumerKey = document.getElementById('mp-ckey').value.trim();
+  const consumerSecret = document.getElementById('mp-csecret').value.trim();
+  const environment = document.getElementById('mp-env').value;
+  if (!paybill || !consumerKey || !consumerSecret) { showToast('Paybill, key and secret are required', 'error'); return; }
+
+  const btn = document.getElementById('mp-connect-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner spinner-sm" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></div><span>Connecting…</span>';
+  try {
+    await apiPost('/api/mpesa/connect', { paybill, consumerKey, consumerSecret, environment });
+    document.getElementById('mp-csecret').value = '';
+    CURRENT_PROFILE = { ...CURRENT_PROFILE, paybill_number: paybill };
+    showToast('M-Pesa connected & notification URL registered', 'success');
+    loadMpesaStatus();
+  } catch (err) {
+    showToast(`Connect failed: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `${icon('link')}<span>Connect &amp; Register</span>`;
+  }
+}
+
+async function disconnectMpesa() {
+  const ok = await confirmDialog({
+    title: 'Disconnect M-Pesa?',
+    message: 'Payments to this paybill will stop auto-recording until you reconnect.',
+    confirmText: 'Disconnect', danger: true,
+  });
+  if (!ok) return;
+  try {
+    await apiPost('/api/mpesa/disconnect', {});
+    CURRENT_PROFILE = { ...CURRENT_PROFILE, paybill_number: null };
+    showToast('M-Pesa disconnected', 'success');
+    loadMpesaStatus();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function saveMpesaPrefix(e) {
   e.preventDefault();
   const prefix = document.getElementById('mp-default-prefix').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const updates = {
-    paybill_number: document.getElementById('mp-paybill').value.trim() || null,
-    account_prefix: prefix || null,
-  };
-  const { error } = await sb.from('profiles').update(updates).eq('id', CURRENT_PROFILE.id);
+  const { error } = await sb.from('profiles').update({ account_prefix: prefix || null }).eq('id', CURRENT_PROFILE.id);
   if (error) { showToast(error.message, 'error'); return; }
-  CURRENT_PROFILE = { ...CURRENT_PROFILE, ...updates };
-  showToast('M-Pesa settings saved', 'success');
+  CURRENT_PROFILE = { ...CURRENT_PROFILE, account_prefix: prefix || null };
+  showToast('Prefix saved', 'success');
 }
 
 /* ---- BILLING & PENALTIES TAB ---- */

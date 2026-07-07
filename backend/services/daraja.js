@@ -1,83 +1,62 @@
 /**
  * M-Pesa Daraja API client.
- * Handles OAuth tokens and URL registration with Safaricom.
+ * Per-landlord: every call takes the landlord's credentials/shortcode so one
+ * backend can serve many landlords, each with their own paybill.
  */
 const axios = require('axios');
 
 const SANDBOX_BASE = 'https://sandbox.safaricom.co.ke';
 const PRODUCTION_BASE = 'https://api.safaricom.co.ke';
 
-function baseUrl() {
-  return (process.env.MPESA_ENV === 'production') ? PRODUCTION_BASE : SANDBOX_BASE;
-}
-
-let cachedToken = null;
-let tokenExpiresAt = 0;
-
-/**
- * Get an OAuth access token (cached for ~50 minutes).
- */
-async function getAccessToken() {
-  if (cachedToken && Date.now() < tokenExpiresAt) {
-    return cachedToken;
-  }
-
-  const key = process.env.MPESA_CONSUMER_KEY;
-  const secret = process.env.MPESA_CONSUMER_SECRET;
-  if (!key || !secret) throw new Error('MPESA_CONSUMER_KEY/SECRET not configured');
-
-  const auth = Buffer.from(`${key}:${secret}`).toString('base64');
-  const url = `${baseUrl()}/oauth/v1/generate?grant_type=client_credentials`;
-
-  const { data } = await axios.get(url, {
-    headers: { Authorization: `Basic ${auth}` },
-  });
-
-  cachedToken = data.access_token;
-  tokenExpiresAt = Date.now() + (Number(data.expires_in || 3600) - 60) * 1000;
-  return cachedToken;
+function baseFor(environment) {
+  return environment === 'production' ? PRODUCTION_BASE : SANDBOX_BASE;
 }
 
 /**
- * Register C2B Validation & Confirmation URLs with Safaricom.
- * Run this ONCE after deploying or whenever URLs change.
+ * Get an OAuth access token for a given app's credentials.
+ * @param {object} cfg { consumerKey, consumerSecret, environment }
  */
-async function registerUrls() {
-  const token = await getAccessToken();
-  const shortcode = process.env.MPESA_SHORTCODE;
-  const validationUrl = process.env.MPESA_VALIDATION_URL;
-  const confirmationUrl = process.env.MPESA_CONFIRMATION_URL;
+async function getAccessToken({ consumerKey, consumerSecret, environment }) {
+  if (!consumerKey || !consumerSecret) throw new Error('Consumer key/secret required');
+  const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
+  const { data } = await axios.get(
+    `${baseFor(environment)}/oauth/v1/generate?grant_type=client_credentials`,
+    { headers: { Authorization: `Basic ${auth}` }, timeout: 20000 }
+  );
+  return data.access_token;
+}
 
-  if (!shortcode || !validationUrl || !confirmationUrl) {
-    throw new Error('MPESA_SHORTCODE, MPESA_VALIDATION_URL, or MPESA_CONFIRMATION_URL missing');
-  }
-
+/**
+ * Register C2B Validation & Confirmation URLs for a shortcode.
+ * @param {object} cfg { consumerKey, consumerSecret, environment, shortcode,
+ *                        validationUrl, confirmationUrl }
+ */
+async function registerUrls({ consumerKey, consumerSecret, environment, shortcode, validationUrl, confirmationUrl }) {
+  if (!shortcode || !confirmationUrl) throw new Error('shortcode and confirmationUrl are required');
+  const token = await getAccessToken({ consumerKey, consumerSecret, environment });
   const { data } = await axios.post(
-    `${baseUrl()}/mpesa/c2b/v1/registerurl`,
+    `${baseFor(environment)}/mpesa/c2b/v1/registerurl`,
     {
       ShortCode: shortcode,
-      ResponseType: 'Completed',         // 'Completed' = process even if validation fails
+      ResponseType: 'Completed',          // process even if validation is skipped
       ConfirmationURL: confirmationUrl,
-      ValidationURL: validationUrl,
+      ValidationURL: validationUrl || confirmationUrl,
     },
-    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, timeout: 20000 }
   );
-
   return data;
 }
 
 /**
  * Simulate a C2B payment (sandbox only).
+ * @param {object} cfg { consumerKey, consumerSecret, environment, shortcode,
+ *                        amount, phone, accountNumber }
  */
-async function simulateC2B({ amount, phone, accountNumber }) {
-  if (process.env.MPESA_ENV === 'production') {
-    throw new Error('Simulate is only available in sandbox mode');
-  }
-  const token = await getAccessToken();
-  const shortcode = process.env.MPESA_SHORTCODE;
-
+async function simulateC2B({ consumerKey, consumerSecret, environment, shortcode, amount, phone, accountNumber }) {
+  if (environment === 'production') throw new Error('Simulate is only available in sandbox mode');
+  const token = await getAccessToken({ consumerKey, consumerSecret, environment });
   const { data } = await axios.post(
-    `${baseUrl()}/mpesa/c2b/v1/simulate`,
+    `${baseFor(environment)}/mpesa/c2b/v1/simulate`,
     {
       ShortCode: shortcode,
       CommandID: 'CustomerPayBillOnline',
@@ -85,9 +64,8 @@ async function simulateC2B({ amount, phone, accountNumber }) {
       Msisdn: phone,
       BillRefNumber: accountNumber,
     },
-    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, timeout: 20000 }
   );
-
   return data;
 }
 

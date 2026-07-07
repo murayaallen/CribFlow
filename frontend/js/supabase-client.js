@@ -88,3 +88,19 @@ async function apiPost(path, body) {
   if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
   return data;
 }
+
+async function apiGet(path) {
+  if (typeof CONFIG === 'undefined' || !CONFIG.API_URL) {
+    throw new Error('Backend API not configured (CONFIG.API_URL)');
+  }
+  const { data: { session } } = await sb.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('Not signed in');
+  const res = await fetch(`${CONFIG.API_URL}${path}`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  let data = null;
+  try { data = await res.json(); } catch (_) { /* non-JSON */ }
+  if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+  return data;
+}

@@ -11,6 +11,7 @@ const router = express.Router();
 const supabase = require('../services/supabase');
 const daraja = require('../services/daraja');
 const { ipAllowlist, rateLimiter } = require('../middleware/security');
+const { requireAuth } = require('../middleware/auth');
 
 // Public Safaricom callbacks: optional IP allowlist (MPESA_ALLOWED_IPS) +
 // a rate limit so the endpoints can't be flooded with forged payments.
@@ -212,32 +213,99 @@ function requireAdmin(req, res, next) {
 }
 
 /* =============================================================================
-   ADMIN — Register URLs with Safaricom
-   Run once after deploy.
+   LANDLORD — Connect a paybill (multi-landlord onboarding).
+   The landlord provides their paybill + Daraja Consumer Key/Secret. We register
+   the shared platform callback URL for their shortcode, store the connection
+   state (NOT the secret), and set profiles.paybill_number so incoming payments
+   route to them. Receiving payments afterwards needs no credentials.
    ============================================================================= */
-router.post('/register-urls', requireAdmin, async (req, res) => {
+router.post('/connect', requireAuth, async (req, res) => {
   try {
-    const result = await daraja.registerUrls();
-    res.json({ success: true, result });
+    const { paybill, consumerKey, consumerSecret } = req.body;
+    const environment = req.body.environment === 'production' ? 'production' : 'sandbox';
+    if (!paybill || !consumerKey || !consumerSecret) {
+      return res.status(400).json({ error: 'paybill, consumerKey and consumerSecret are required' });
+    }
+    const confirmationUrl = process.env.MPESA_CONFIRMATION_URL;
+    const validationUrl = process.env.MPESA_VALIDATION_URL;
+    if (!confirmationUrl) {
+      return res.status(503).json({ error: 'Platform callback URL not configured (MPESA_CONFIRMATION_URL)' });
+    }
+
+    // A paybill can only belong to one landlord
+    const { data: taken } = await supabase.from('profiles')
+      .select('id').eq('paybill_number', paybill).neq('id', req.user.id).maybeSingle();
+    if (taken) return res.status(409).json({ error: 'That paybill is already connected to another account' });
+
+    // Register the callback URL for this landlord's shortcode
+    let status = 'registered', lastError = null, result = null;
+    try {
+      result = await daraja.registerUrls({
+        consumerKey, consumerSecret, environment,
+        shortcode: paybill, validationUrl, confirmationUrl,
+      });
+    } catch (err) {
+      status = 'failed';
+      lastError = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    }
+
+    // Persist connection state (secret is NOT stored) + set the matching key
+    await supabase.from('landlord_mpesa').upsert({
+      user_id: req.user.id,
+      paybill_number: paybill,
+      consumer_key: consumerKey,
+      environment,
+      registration_status: status,
+      registered_at: status === 'registered' ? new Date().toISOString() : null,
+      last_error: lastError,
+    });
+    await supabase.from('profiles').update({ paybill_number: paybill }).eq('id', req.user.id);
+
+    if (status === 'failed') {
+      return res.status(502).json({ error: 'Safaricom URL registration failed', details: lastError });
+    }
+    res.json({ success: true, registration_status: status, result });
   } catch (err) {
-    console.error('[mpesa] register-urls error:', err.response?.data || err.message);
-    res.status(500).json({ error: err.message, details: err.response?.data });
+    console.error('[mpesa] connect error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* Landlord — current M-Pesa connection status (no secret ever returned). */
+router.get('/status', requireAuth, async (req, res) => {
+  try {
+    const { data } = await supabase.from('landlord_mpesa')
+      .select('paybill_number, environment, registration_status, registered_at, last_error')
+      .eq('user_id', req.user.id).maybeSingle();
+    res.json(data || { registration_status: 'unregistered', paybill_number: null });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* Landlord — disconnect their paybill. */
+router.post('/disconnect', requireAuth, async (req, res) => {
+  try {
+    await supabase.from('landlord_mpesa').delete().eq('user_id', req.user.id);
+    await supabase.from('profiles').update({ paybill_number: null }).eq('id', req.user.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
 /* =============================================================================
-   ADMIN — Simulate a payment (sandbox only)
+   ADMIN — Simulate a C2B payment (sandbox only). Credentials come in the body
+   since we don't store secrets. Requires ADMIN_TOKEN.
    ============================================================================= */
 router.post('/simulate', requireAdmin, async (req, res) => {
-  if (process.env.MPESA_ENV === 'production') {
-    return res.status(403).json({ error: 'Simulate is disabled in production' });
-  }
   try {
-    const { amount, phone, accountNumber } = req.body;
-    if (!amount || !phone || !accountNumber) {
-      return res.status(400).json({ error: 'amount, phone, accountNumber required' });
+    const { consumerKey, consumerSecret, shortcode, amount, phone, accountNumber } = req.body;
+    const environment = req.body.environment === 'production' ? 'production' : 'sandbox';
+    if (!consumerKey || !consumerSecret || !shortcode || !amount || !phone || !accountNumber) {
+      return res.status(400).json({ error: 'consumerKey, consumerSecret, shortcode, amount, phone, accountNumber required' });
     }
-    const result = await daraja.simulateC2B({ amount, phone, accountNumber });
+    const result = await daraja.simulateC2B({ consumerKey, consumerSecret, environment, shortcode, amount, phone, accountNumber });
     res.json({ success: true, result });
   } catch (err) {
     console.error('[mpesa] simulate error:', err.response?.data || err.message);

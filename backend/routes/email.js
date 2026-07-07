@@ -10,23 +10,7 @@ const router = express.Router();
 const supabase = require('../services/supabase');
 const mailer = require('../services/mailer');
 const notify = require('../services/notify');
-
-/* =============================================================================
-   AUTH MIDDLEWARE — verify Supabase JWT
-   ============================================================================= */
-async function requireAuth(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing auth token' });
-  }
-  const token = auth.slice(7);
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data?.user) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-  req.user = data.user;
-  next();
-}
+const { requireAuth } = require('../middleware/auth');
 
 /* =============================================================================
    SEND A BILL

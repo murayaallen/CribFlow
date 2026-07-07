@@ -47,6 +47,27 @@ create table public.subscriptions (
 create index idx_subscriptions_user on public.subscriptions(user_id);
 
 -- =============================================================================
+-- 1c. LANDLORD M-PESA (per-landlord paybill connection — multi-paybill SaaS)
+-- Server-only (RLS enabled, no policies -> only the backend service role).
+-- The consumer SECRET is never stored (used once to register, then discarded).
+-- =============================================================================
+create table public.landlord_mpesa (
+  user_id uuid primary key references public.profiles(id) on delete cascade,
+  paybill_number text not null,
+  consumer_key text,
+  environment text not null check (environment in ('sandbox','production')) default 'production',
+  registration_status text not null check (registration_status in ('unregistered','registered','failed')) default 'unregistered',
+  registered_at timestamptz,
+  last_error text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- A paybill maps to exactly one landlord (prevents ambiguous callback matching).
+create unique index idx_profiles_paybill_unique
+  on public.profiles(paybill_number) where paybill_number is not null;
+
+-- =============================================================================
 -- 2. PROPERTIES
 -- =============================================================================
 create table public.properties (
@@ -285,6 +306,8 @@ create trigger update_tenants_updated_at before update on tenants
 create trigger update_bills_updated_at before update on bills
   for each row execute function update_updated_at_column();
 create trigger update_subscriptions_updated_at before update on subscriptions
+  for each row execute function update_updated_at_column();
+create trigger update_landlord_mpesa_updated_at before update on landlord_mpesa
   for each row execute function update_updated_at_column();
 
 -- -----------------------------------------------------------------------------
