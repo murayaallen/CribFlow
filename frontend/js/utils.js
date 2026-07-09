@@ -163,25 +163,27 @@ function showToast(message, type = 'info', opts = {}) {
   const container = ensureToastContainer();
   const el = document.createElement('div');
   el.className = `toast toast-${type}`;
-  const iconName = { success: 'checkCircle', error: 'alert', warning: 'warning', info: 'info' }[type];
+  const iconName = { success: 'checkCircle', error: 'alert', warning: 'warning', info: 'info' }[type] || 'info';
   el.innerHTML = `
     <div class="toast-icon">${icon(iconName, 'icon')}</div>
     <div class="toast-body">
-      ${title ? `<div class="toast-title">${title}</div>` : ''}
-      <div class="toast-message">${message}</div>
+      ${title ? `<div class="toast-title">${escapeHtml(title)}</div>` : ''}
+      <div class="toast-message">${escapeHtml(message)}</div>
     </div>
     <button class="toast-close" aria-label="Close">${icon('x')}</button>
+    ${duration > 0 ? `<div class="toast-progress" style="animation-duration:${duration}ms"></div>` : ''}
   `;
   el.querySelector('.toast-close').addEventListener('click', () => removeToast(el));
   container.appendChild(el);
   if (duration > 0) setTimeout(() => removeToast(el), duration);
+  return el;
 }
 
 function removeToast(el) {
-  el.style.opacity = '0';
-  el.style.transform = 'translateX(8px)';
-  el.style.transition = 'all 200ms';
-  setTimeout(() => el.remove(), 200);
+  if (!el || el.dataset.leaving) return;
+  el.dataset.leaving = '1';
+  el.classList.add('is-leaving');
+  setTimeout(() => el.remove(), 240);
 }
 
 /* ---- MODAL HELPERS ---- */
@@ -203,13 +205,18 @@ function openModal(content, opts = {}) {
   document.body.appendChild(backdrop);
   document.body.style.overflow = 'hidden';
 
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+
   const close = () => {
-    backdrop.remove();
+    document.removeEventListener('keydown', onKey);
+    backdrop.classList.add('is-closing');
+    setTimeout(() => backdrop.remove(), 180);
     document.body.style.overflow = '';
   };
 
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
   backdrop.querySelector('.modal-close')?.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
 
   return { backdrop, close };
 }
@@ -223,13 +230,19 @@ function confirmDialog(opts = {}) {
     danger = false,
   } = opts;
 
+  const iconName = opts.icon || (danger ? 'alert' : 'info');
   return new Promise((resolve) => {
-    const content = `<p style="color:var(--color-text-secondary);line-height:1.6">${message}</p>`;
+    const content = `
+      <div class="confirm-dialog">
+        <div class="confirm-icon ${danger ? 'is-danger' : ''}">${icon(iconName)}</div>
+        <div class="confirm-title">${escapeHtml(title)}</div>
+        ${message ? `<p class="confirm-message">${escapeHtml(message)}</p>` : ''}
+      </div>`;
     const footer = `
-      <button class="btn btn-secondary" id="cancel-btn">${cancelText}</button>
-      <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" id="confirm-btn">${confirmText}</button>
+      <button class="btn btn-secondary" id="cancel-btn" style="flex:1">${escapeHtml(cancelText)}</button>
+      <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" id="confirm-btn" style="flex:1">${escapeHtml(confirmText)}</button>
     `;
-    const { backdrop, close } = openModal(content, { title, footer });
+    const { backdrop, close } = openModal(content, { footer });
 
     backdrop.querySelector('#cancel-btn').addEventListener('click', () => { close(); resolve(false); });
     backdrop.querySelector('#confirm-btn').addEventListener('click', () => { close(); resolve(true); });
