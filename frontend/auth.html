@@ -134,9 +134,26 @@
     }
     .auth-testimonial-stars svg { width: 13px; height: 13px; color: #E8B770; fill: #E8B770; }
 
+    .auth-tagline {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px; padding: 22px 24px; position: relative;
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    }
+    .auth-tagline-mark { font-family: 'Fraunces', Georgia, serif; font-size: 52px; line-height: 0;
+      color: var(--color-accent-light); position: absolute; top: 30px; left: 16px; opacity: 0.5; }
+    .auth-tagline p { font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 300; font-style: italic;
+      line-height: 1.6; color: rgba(255,255,255,0.9); padding-left: 28px; }
+
     .auth-form-side { position: relative; overflow: hidden; background: var(--color-bg); }
     .auth-floats { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-    .auth-card { position: relative; z-index: 1; width: 100%; max-width: 420px; }
+    .auth-card {
+      position: relative; z-index: 1; width: 100%; max-width: 440px;
+      background: var(--glass-bg-strong);
+      -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px; padding: 40px 38px; box-shadow: var(--shadow-2xl);
+    }
+    @media (max-width: 900px) { .auth-card { padding: 30px 22px; border-radius: 20px; } }
 
     .auth-mobile-logo {
       display: none;
@@ -388,28 +405,15 @@
               <div class="auth-stat-label">Encryption</div>
             </div>
             <div class="auth-stat">
-              <div class="auth-stat-num">4.9 / 5</div>
-              <div class="auth-stat-label">Ease of use</div>
+              <div class="auth-stat-num">Direct</div>
+              <div class="auth-stat-label">M-Pesa payout</div>
             </div>
           </div>
         </div>
 
-        <div class="auth-testimonial">
-          <div class="auth-testimonial-stars">
-            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          </div>
-          <div class="auth-testimonial-quote">"CribFlow has brought a level of structure and accountability to my portfolio that I didn't think was possible with a local solution. Billing is accurate, payments reconcile automatically, and I have full visibility at any time."</div>
-          <div class="auth-testimonial-author">
-            <div class="auth-testimonial-avatar">AM</div>
-            <div>
-              <div class="auth-testimonial-name">Allen Muraya</div>
-              <div class="auth-testimonial-role">Property Investor · 28 units · Nairobi</div>
-            </div>
-          </div>
+        <div class="auth-tagline">
+          <span class="auth-tagline-mark">&ldquo;</span>
+          <p>Rent, water and M-Pesa — reconciled automatically, and always right.<br/>The calm way to run your portfolio.</p>
         </div>
 
         <div class="auth-footer">© 2026 CribFlow · Crafted for Kenya's landlords.</div>
