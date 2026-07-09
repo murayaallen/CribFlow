@@ -29,6 +29,10 @@
     }).join('');
   }
 
+  var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>';
+  var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function themeIcon() { return (window.CFTheme && CFTheme.get() === 'dark') ? SUN : MOON; }
+
   /* ---- NAV ---- */
   var nav = document.getElementById('site-nav');
   if (nav) {
@@ -38,9 +42,16 @@
       '<nav class="site-nav-links">' + navLinksHTML('site-nav-link') +
         '<a class="btn btn-primary site-nav-cta" href="/auth.html">Log in</a>' +
       '</nav>' +
-      '<button class="site-nav-toggle" aria-label="Menu">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>' +
-      '</button>';
+      '<div class="site-nav-right">' +
+        '<button class="site-theme-toggle" id="site-theme-toggle" aria-label="Toggle light/dark">' + themeIcon() + '</button>' +
+        '<button class="site-nav-toggle" aria-label="Menu">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>' +
+        '</button>' +
+      '</div>';
+
+    var tt = document.getElementById('site-theme-toggle');
+    tt.addEventListener('click', function () { if (window.CFTheme) { CFTheme.toggle(); tt.innerHTML = themeIcon(); } });
+    document.addEventListener('themechange', function () { tt.innerHTML = themeIcon(); });
 
     var onScroll = function () { nav.classList.toggle('scrolled', window.scrollY > 24); };
     onScroll(); window.addEventListener('scroll', onScroll, { passive: true });

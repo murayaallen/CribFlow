@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/site.css" />
+  <script src="/js/theme.js"></script>
   <script>document.documentElement.classList.add('js');</script>
   <script src="/js/loader.js" data-context="site"></script>
 </head>
@@ -17,8 +18,13 @@
   <header id="site-nav"></header>
 
   <!-- HERO -->
-  <section class="site-hero">
+  <section class="site-hero grain">
     <div class="site-hero-media" style="background-image:url('/images/site/hero-westlands.jpg')"></div>
+    <div class="orbs">
+      <span class="orb orb-gold orb-1"></span>
+      <span class="orb orb-emerald orb-2"></span>
+      <span class="orb orb-gold orb-3"></span>
+    </div>
     <div class="site-hero-inner">
       <div class="site-eyebrow"><span class="site-eyebrow-dot"></span>Built for Kenya's landlords</div>
       <h1>Collect rent.<br>Run your portfolio <em>with ease.</em></h1>
@@ -36,8 +42,12 @@
   </section>
 
   <!-- FEATURES TEASER -->
-  <section class="site-section" id="features">
-    <div class="site-container">
+  <section class="site-section" id="features" style="position:relative;overflow:clip">
+    <div class="orbs">
+      <span class="orb orb-emerald orb-1" style="opacity:.26"></span>
+      <span class="orb orb-gold orb-2" style="opacity:.26"></span>
+    </div>
+    <div class="site-container" style="position:relative;z-index:1">
       <div class="site-section-head" data-reveal>
         <span class="eyebrow">Everything in one place</span>
         <h2>Your whole portfolio, beautifully in order.</h2>
@@ -75,6 +85,16 @@
           <p>Professional PDF receipts and email confirmations sent the moment a payment lands.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- SHOWPIECE (parallax) -->
+  <section class="showpiece">
+    <div class="showpiece-media" style="background-image:url('/images/site/balcony-skyline.jpg')"></div>
+    <div class="showpiece-inner" data-reveal>
+      <span class="eyebrow">A calmer way to manage</span>
+      <h2>Every shilling accounted for. Every tenant in view.</h2>
+      <p>From the first meter reading to the final receipt, CribFlow keeps your whole portfolio in perfect order — quietly, beautifully, reliably.</p>
     </div>
   </section>
 

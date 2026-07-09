@@ -46,7 +46,8 @@
   (document.body || document.documentElement).appendChild(el);
 
   var mountedAt = Date.now();
-  var MIN_MS = 850;   // minimum on-screen time so it never "flashes"
+  // Hold long enough for the mark to fully draw (~2.2s) + a graceful beat.
+  var MIN_MS = 2600;
 
   function done() {
     if (el.dataset.done) return;
