@@ -3,11 +3,11 @@
 How CribFlow is hosted for live usage.
 
 ```
-                 Cloudflare / DNS  (cribflow.co.ke)
+                 Cloudflare / DNS  (flows.co.ke)
                           │
         ┌─────────────────┴──────────────────┐
         │                                     │
-  app.cribflow.co.ke                    api.cribflow.co.ke
+  crib.flows.co.ke                    crib-api.flows.co.ke
   (public_html static site)            (DirectAdmin Node.js app)
    frontend/*.html,css,js               backend/  (Express + Passenger)
         │                                     │
@@ -16,26 +16,30 @@ How CribFlow is hosted for live usage.
                        ▼
               Supabase (PAID / Pro)   ← Postgres, Auth, Storage, backups
                        ▲
-                       │  M-Pesa C2B callbacks (HTTPS) → api.cribflow.co.ke/api/mpesa/*
+                       │  M-Pesa C2B callbacks (HTTPS) → crib-api.flows.co.ke/api/mpesa/*
                 Safaricom Daraja
 ```
 
-Assumptions (adjust to your real domain): frontend at `app.cribflow.co.ke`,
-backend at `api.cribflow.co.ke`. Both get free Let's Encrypt SSL in DirectAdmin.
+CribFlow is the first product under the **flows.co.ke** SaaS umbrella: frontend at
+`crib.flows.co.ke`, backend at `crib-api.flows.co.ke`. Both get free Let's Encrypt
+SSL in DirectAdmin. The lineup convention is `<product>.flows.co.ke` +
+`<product>-api.flows.co.ke` — keeping the API at a **single** subdomain level so
+one `*.flows.co.ke` wildcard cert (or Cloudflare Universal SSL) covers it; a
+two-level host like `api.crib.flows.co.ke` would not be covered by that wildcard.
 
 ---
 
 ## 1. Frontend (static) on DirectAdmin
 
 1. **Create the site**: DirectAdmin → *Domain Setup* (or a subdomain
-   `app.cribflow.co.ke`). Its document root is `.../public_html`.
+   `crib.flows.co.ke`). Its document root is `.../public_html`.
 2. **Enable SSL**: DirectAdmin → *SSL Certificates* → Let's Encrypt for the
    domain. Force HTTPS redirect.
 3. **Configure**: copy `frontend/js/config.example.js` → `config.js` and set:
    ```js
    SUPABASE_URL: 'https://YOUR-PROJECT.supabase.co',
    SUPABASE_ANON_KEY: 'YOUR_ANON_KEY',      // public-safe (RLS enforces access)
-   API_URL: 'https://api.cribflow.co.ke',
+   API_URL: 'https://crib-api.flows.co.ke',
    CURRENCY: 'KSh', COUNTRY: 'KE',
    ```
 4. **Upload**: put the contents of `frontend/` into `public_html/`
@@ -53,7 +57,7 @@ backend at `api.cribflow.co.ke`. Both get free Let's Encrypt SSL in DirectAdmin.
 DirectAdmin's Node.js feature runs the app under **Passenger** (CloudLinux
 NodeJS Selector).
 
-1. **Create subdomain** `api.cribflow.co.ke` and enable Let's Encrypt SSL on it
+1. **Create subdomain** `crib-api.flows.co.ke` and enable Let's Encrypt SSL on it
    (M-Pesa requires public HTTPS).
 2. **Upload** the `backend/` folder somewhere in the account (e.g.
    `~/nodeapps/cribflow-api`). Do **not** upload `node_modules` or `.env` blindly.
@@ -61,18 +65,18 @@ NodeJS Selector).
    - **Node version**: 18+ (matches `engines`).
    - **Application mode**: Production.
    - **Application root**: the uploaded `backend/` path.
-   - **Application URL**: `api.cribflow.co.ke`.
+   - **Application URL**: `crib-api.flows.co.ke`.
    - **Application startup file**: `server.js`.
 4. **Environment variables** (set in the Node.js app UI — this replaces `.env`
    on shared hosting; you can also place a `.env` in the app root):
    ```
    NODE_ENV=production
-   FRONTEND_URL=https://app.cribflow.co.ke
+   FRONTEND_URL=https://crib.flows.co.ke
    SUPABASE_URL=...            SUPABASE_SERVICE_KEY=...   (service role — secret!)
    MPESA_ENV=production        MPESA_CONSUMER_KEY=...     MPESA_CONSUMER_SECRET=...
    MPESA_SHORTCODE=...         MPESA_PASSKEY=...
-   MPESA_VALIDATION_URL=https://api.cribflow.co.ke/api/mpesa/validation
-   MPESA_CONFIRMATION_URL=https://api.cribflow.co.ke/api/mpesa/confirmation
+   MPESA_VALIDATION_URL=https://crib-api.flows.co.ke/api/mpesa/validation
+   MPESA_CONFIRMATION_URL=https://crib-api.flows.co.ke/api/mpesa/confirmation
    GMAIL_USER=...              GMAIL_APP_PASSWORD=...     EMAIL_FROM_NAME=CribFlow
    ```
 5. **Install deps**: click *Run NPM Install* (or SSH: activate the app's venv,
@@ -80,7 +84,7 @@ NodeJS Selector).
 6. **Start / Restart**: use the app's *Restart* button. Passenger keeps the
    process alive and restarts on crash. To force a restart after code changes:
    `touch ~/nodeapps/cribflow-api/tmp/restart.txt`.
-7. **Verify**: `https://api.cribflow.co.ke/health` returns `{status:"ok"}`.
+7. **Verify**: `https://crib-api.flows.co.ke/health` returns `{status:"ok"}`.
 
 **Passenger notes**
 - The app listens on `process.env.PORT` (Passenger provides it) — `server.js`
@@ -122,18 +126,18 @@ exposes **protected `/api/jobs/*` endpoints** (guarded by `CRON_TOKEN` via the
 
 ```bash
 # Daily ~06:00 — accrue late fees on overdue bills (one-time per bill)
-curl -fsS -X POST https://api.cribflow.co.ke/api/jobs/apply-late-fees \
+curl -fsS -X POST https://crib-api.flows.co.ke/api/jobs/apply-late-fees \
   -H "X-Cron-Token: $CRON_TOKEN"
 
 # Daily ~08:00 — email reminders for overdue bills (respects reminder_days,
 # won't re-send within 7 days)
-curl -fsS -X POST https://api.cribflow.co.ke/api/jobs/send-reminders \
+curl -fsS -X POST https://crib-api.flows.co.ke/api/jobs/send-reminders \
   -H "X-Cron-Token: $CRON_TOKEN"
 
 # Monthly, 1st ~00:30 — generate this month's bills for all active tenants
 # (rent + water from readings; skips tenants already billed). Optional body:
 # {"month":7,"year":2026,"due_day":5}
-curl -fsS -X POST https://api.cribflow.co.ke/api/jobs/generate-bills \
+curl -fsS -X POST https://crib-api.flows.co.ke/api/jobs/generate-bills \
   -H "X-Cron-Token: $CRON_TOKEN"
 ```
 All three are idempotent and safe to re-run. Alternative: Supabase **pg_cron**

@@ -115,8 +115,8 @@ MPESA_ENV=sandbox                  # or "production" once approved
 MPESA_CONSUMER_KEY=...
 MPESA_CONSUMER_SECRET=...
 MPESA_SHORTCODE=174379             # sandbox shortcode, or your real Paybill
-MPESA_VALIDATION_URL=https://yourdomain.com/api/mpesa/validation
-MPESA_CONFIRMATION_URL=https://yourdomain.com/api/mpesa/confirmation
+MPESA_VALIDATION_URL=https://crib-api.flows.co.ke/api/mpesa/validation
+MPESA_CONFIRMATION_URL=https://crib-api.flows.co.ke/api/mpesa/confirmation
 ```
 
 > ⚠️ The validation/confirmation URLs must be **publicly reachable HTTPS**. For local development, use [ngrok](https://ngrok.com) to expose your localhost:
@@ -130,7 +130,7 @@ MPESA_CONFIRMATION_URL=https://yourdomain.com/api/mpesa/confirmation
 After deploying (or running ngrok), register your URLs **once**:
 
 ```bash
-curl -X POST https://yourdomain.com/api/mpesa/register-urls
+curl -X POST https://crib-api.flows.co.ke/api/mpesa/register-urls
 ```
 
 ### E. Test in sandbox
@@ -138,7 +138,7 @@ curl -X POST https://yourdomain.com/api/mpesa/register-urls
 Use the simulate endpoint to send a test payment:
 
 ```bash
-curl -X POST https://yourdomain.com/api/mpesa/simulate \
+curl -X POST https://crib-api.flows.co.ke/api/mpesa/simulate \
   -H 'Content-Type: application/json' \
   -d '{"amount": 1000, "phone": "254708374149", "accountNumber": "SRC-A1"}'
 ```
@@ -192,7 +192,7 @@ Restart the backend. Tenants with email addresses will now receive bill, receipt
 # Frontend
 server {
   listen 443 ssl http2;
-  server_name app.yourdomain.com;
+  server_name crib.flows.co.ke;
   root /var/www/rentflow/frontend;
   index index.html auth.html;
   try_files $uri $uri/ =404;
@@ -201,7 +201,7 @@ server {
 # Backend API
 server {
   listen 443 ssl http2;
-  server_name api.yourdomain.com;
+  server_name crib-api.flows.co.ke;
   location / {
     proxy_pass http://localhost:3000;
     proxy_set_header Host $host;
@@ -212,7 +212,7 @@ server {
 
 Update frontend `js/config.js`:
 ```js
-API_URL: 'https://api.yourdomain.com',
+API_URL: 'https://crib-api.flows.co.ke',
 ```
 
 ---

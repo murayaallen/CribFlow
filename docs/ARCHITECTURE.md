@@ -259,10 +259,10 @@ direct path; the backend must re-check ownership because it runs privileged.
 
 ```
 Cloudflare/DNS
-   ├── app.cribflow… ──► DirectAdmin public_html ──► static frontend/      (Let's Encrypt TLS)
-   └── api.cribflow… ──► DirectAdmin Node.js app (Passenger) ──► server.js  (Let's Encrypt TLS)
+   ├── crib.flows… ──► DirectAdmin public_html ──► static frontend/      (Let's Encrypt TLS)
+   └── crib-api.flows… ──► DirectAdmin Node.js app (Passenger) ──► server.js  (Let's Encrypt TLS)
 Supabase (PAID/Pro — Postgres, Auth, Storage) ── daily backups + PITR
-Safaricom Daraja ── registered to api.cribflow…/api/mpesa/*
+Safaricom Daraja ── registered to crib-api.flows…/api/mpesa/*
 ```
 - **Frontend**: static files in DirectAdmin `public_html` (optionally Cloudflare
   CDN in front). `config.js` holds prod Supabase URL + anon key + `API_URL`.
