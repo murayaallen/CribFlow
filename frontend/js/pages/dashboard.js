@@ -6,9 +6,14 @@
   const user = await requireAuth();
   if (!user) return;
 
-  const profile = await getCurrentProfile();
-  await renderSidebar('dashboard');
-  await renderDashboard(profile);
+  try {
+    const profile = await getCurrentProfile();
+    await renderSidebar('dashboard');
+    await renderDashboard(profile);
+  } finally {
+    // Dismiss the premium loader once the dashboard has painted its data.
+    if (window.CFLoader) window.CFLoader.done();
+  }
 })();
 
 async function renderDashboard(profile) {

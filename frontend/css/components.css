@@ -3,6 +3,62 @@
    ============================================================================= */
 
 /* =============================================================================
+   PREMIUM LOADER (T3) — shared triple loading experience (site/auth/dashboard)
+   Injected by js/loader.js. Logo-agnostic (inline SVG mark, no image dep).
+   ============================================================================= */
+#cf-loader {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gradient-hero);
+  overflow: hidden;
+  transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
+}
+#cf-loader::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#cf-loader.is-hidden { opacity: 0; transform: scale(1.04); pointer-events: none; }
+
+.cf-loader-inner { position: relative; text-align: center; animation: reveal-up 640ms var(--ease-out) both; }
+
+.cf-loader-mark { position: relative; width: 88px; height: 88px; margin: 0 auto var(--space-6); }
+.cf-loader-mark::before {
+  content: ""; position: absolute; inset: -34%; border-radius: var(--radius-full);
+  background: radial-gradient(circle, rgba(232,183,112,0.34) 0%, transparent 68%);
+  animation: pulse 2.6s var(--ease-in-out) infinite;
+}
+.cf-loader-mark svg { position: relative; width: 100%; height: 100%; overflow: visible; }
+.cf-loader-mark .cf-draw {
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  animation: cf-draw 1.5s var(--ease-in-out) forwards;
+}
+@keyframes cf-draw { to { stroke-dashoffset: 0; } }
+
+.cf-loader-word {
+  font-family: var(--font-sans); font-size: 32px; letter-spacing: -0.5px; color: #fff; line-height: 1;
+}
+.cf-loader-word .w-crib { font-weight: 300; opacity: 0.9; }
+.cf-loader-word .w-flow { font-weight: 800; }
+
+.cf-loader-tag {
+  margin-top: var(--space-3); font-size: 12px; letter-spacing: 0.16em;
+  text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.42);
+}
+
+.cf-loader-bar {
+  width: 168px; height: 3px; margin: var(--space-7) auto 0;
+  border-radius: var(--radius-full); background: rgba(255,255,255,0.12); overflow: hidden;
+}
+.cf-loader-fill {
+  height: 100%; width: 42%; border-radius: var(--radius-full);
+  background: var(--gradient-gold);
+  animation: cf-loader-slide 1.25s var(--ease-in-out) infinite;
+}
+@keyframes cf-loader-slide {
+  0% { transform: translateX(-130%); } 100% { transform: translateX(370%); }
+}
+
+/* =============================================================================
    DASHBOARD CHART GRID
    ============================================================================= */
 .dash-charts-grid {
