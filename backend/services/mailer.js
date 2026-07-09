@@ -1,29 +1,49 @@
 /**
- * Email service using Nodemailer + Gmail SMTP.
+ * Email service using Nodemailer.
+ * Prefers a generic SMTP mailbox (e.g. your own domain: noreply@flows.co.ke via
+ * mail.flows.co.ke). Falls back to Gmail if only GMAIL_* is configured.
  */
 const nodemailer = require('nodemailer');
 
 let transporter = null;
 
+function usingSmtp() {
+  return !!process.env.SMTP_HOST;
+}
+
 function getTransporter() {
   if (transporter) return transporter;
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  });
+  if (usingSmtp()) {
+    // Generic SMTP — e.g. DirectAdmin mailbox on your own domain.
+    const port = Number(process.env.SMTP_PORT) || 587;
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      // 465 = implicit TLS; 587 = STARTTLS. Override with SMTP_SECURE=true/false.
+      secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+  } else {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+    });
+  }
   return transporter;
 }
 
 async function sendEmail({ to, subject, html, text }) {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    throw new Error('Gmail credentials not configured');
+  if (usingSmtp()) {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      throw new Error('SMTP credentials not configured (SMTP_USER / SMTP_PASS)');
+    }
+  } else if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    throw new Error('Email credentials not configured (set SMTP_* or GMAIL_*)');
   }
   const fromName = process.env.EMAIL_FROM_NAME || 'CribFlow';
+  const fromAddr = process.env.EMAIL_FROM || process.env.SMTP_USER || process.env.GMAIL_USER;
   const info = await getTransporter().sendMail({
-    from: `"${fromName}" <${process.env.GMAIL_USER}>`,
+    from: `"${fromName}" <${fromAddr}>`,
     to, subject, html, text,
   });
   return info;
