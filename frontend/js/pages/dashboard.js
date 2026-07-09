@@ -103,7 +103,7 @@ async function renderDashboard(profile) {
         <div class="page-title" style="margin-top: 6px">
           ${greeting}, <span class="display" style="font-size: 30px">${escapeHtml((profile?.full_name || 'there').split(' ')[0])}</span>
         </div>
-        <div class="page-subtitle">Here's how your properties are performing this ${fullMonthName(month)}.</div>
+        <div class="page-subtitle">Here's how your properties are performing in ${fullMonthName(month)}.</div>
       </div>
       <div class="page-actions">
         <a href="/properties.html" class="btn btn-secondary">${icon('building')}<span>View Properties</span></a>
@@ -616,7 +616,7 @@ function renderFirstRunCTA() {
   return `
     <section class="card-elevated section">
       <div class="card-body" style="text-align: center; padding: 64px 24px">
-        <div style="width: 64px; height: 64px; margin: 0 auto 20px; background: var(--color-primary-50); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--color-primary)">${icon('building').replace('width="24"', 'width="32"').replace('height="24"', 'height="32"')}</div>
+        <div style="width: 64px; height: 64px; margin: 0 auto 20px; background: var(--color-primary-50); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--color-primary)">${icon('building').replace('<svg', '<svg width="32" height="32"')}</div>
         <h2 style="font-size: 20px; margin-bottom: 8px">Add your first property</h2>
         <p style="font-size: 14px; color: var(--color-text-secondary); max-width: 420px; margin: 0 auto 24px; line-height: 1.6">
           Get started by registering a property. You'll set up rooms, water rates, and naming conventions in just a few clicks.
