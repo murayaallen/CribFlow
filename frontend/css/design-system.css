@@ -3,23 +3,26 @@
    Sophisticated emerald & cream — refined property management aesthetic
    ============================================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   /* === BRAND COLORS === */
   --color-primary: #0F4C3A;          /* deep forest emerald */
   --color-primary-dark: #0A3528;
   --color-primary-light: #1A6B53;
+  --color-primary-900: #071F17;      /* deepest emerald (hero/gradient floor) */
   --color-primary-50: #ECFDF5;       /* lightest tint */
   --color-primary-100: #D1FAE5;
 
-  --color-accent: #C8924A;           /* warm gold */
+  --color-accent: #C8924A;           /* champagne gold */
   --color-accent-dark: #9C6F33;
   --color-accent-light: #E8B770;
   --color-accent-50: #FDF8EE;
 
+  --color-ink: #141513;              /* premium warm charcoal */
+
   /* === SURFACES === */
-  --color-bg: #FAFAF6;               /* warm cream */
+  --color-bg: #FAFAF6;               /* warm ivory */
   --color-bg-elevated: #FFFFFF;
   --color-surface: #FFFFFF;
   --color-surface-2: #F5F4EE;        /* nested surfaces */
@@ -54,9 +57,26 @@
   --color-info-bg: #DBEAFE;
   --color-info-border: #93C5FD;
 
+  /* === GRADIENTS (deliberate — heroes, buttons, accents) === */
+  --gradient-primary: linear-gradient(135deg, #1A6B53 0%, #0F4C3A 55%, #0A3528 100%);
+  --gradient-primary-deep: linear-gradient(160deg, #0F4C3A 0%, #0A3528 52%, #071F17 100%);
+  --gradient-gold: linear-gradient(135deg, #E8B770 0%, #C8924A 100%);
+  --gradient-gold-soft: linear-gradient(135deg, #F3D6A4 0%, #D9A860 100%);
+  --gradient-hero: radial-gradient(120% 120% at 50% 0%, #14604A 0%, #0C3B2C 45%, #071F17 100%);
+  --gradient-surface: linear-gradient(145deg, #FFFFFF 0%, #F7F6F0 100%);
+  --gradient-sheen: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%);
+
+  /* === LIQUID GLASS === */
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-highlight: rgba(255, 255, 255, 0.75);
+  --glass-blur: 18px;
+  --glass-shadow: 0 8px 32px rgba(15, 76, 58, 0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+
   /* === TYPOGRAPHY === */
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-display: 'Fraunces', 'Georgia', serif;
   --font-mono: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
 
   --text-xs: 11px;
@@ -69,6 +89,9 @@
   --text-3xl: 30px;
   --text-4xl: 36px;
   --text-5xl: 48px;
+  --text-6xl: 60px;                  /* site display */
+  --text-7xl: 76px;
+  --text-8xl: 94px;                  /* hero */
 
   /* === SPACING === */
   --space-1: 4px;
@@ -81,6 +104,9 @@
   --space-8: 40px;
   --space-9: 48px;
   --space-10: 64px;
+  --space-12: 80px;
+  --space-16: 120px;                 /* site section rhythm */
+  --space-section: clamp(72px, 11vw, 140px);
 
   /* === RADIUS === */
   --radius-sm: 4px;
@@ -88,6 +114,7 @@
   --radius-lg: 10px;
   --radius-xl: 14px;
   --radius-2xl: 20px;
+  --radius-3xl: 28px;
   --radius-full: 9999px;
 
   /* === SHADOWS === */
@@ -96,18 +123,28 @@
   --shadow-md: 0 4px 6px rgba(15, 76, 58, 0.05), 0 2px 4px rgba(15, 76, 58, 0.03);
   --shadow-lg: 0 10px 15px rgba(15, 76, 58, 0.06), 0 4px 6px rgba(15, 76, 58, 0.04);
   --shadow-xl: 0 20px 25px rgba(15, 76, 58, 0.08), 0 10px 10px rgba(15, 76, 58, 0.03);
+  --shadow-2xl: 0 32px 64px -12px rgba(10, 53, 40, 0.22), 0 12px 24px -8px rgba(10, 53, 40, 0.12);
+  --shadow-card: 0 1px 2px rgba(15,76,58,0.04), 0 8px 24px -12px rgba(15,76,58,0.14);
+  --shadow-primary: 0 12px 32px -8px rgba(15, 76, 58, 0.45);
+  --shadow-gold: 0 12px 32px -8px rgba(200, 146, 74, 0.5);
   --shadow-focus: 0 0 0 3px rgba(15, 76, 58, 0.15);
 
   /* === LAYOUT === */
   --sidebar-w: 232px;
   --topbar-h: 64px;
   --content-max-w: 1320px;
+  --site-max-w: 1200px;
 
   /* === MOTION === */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);      /* smooth deceleration */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* gentle overshoot */
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 320ms;
+  --duration-slower: 500ms;
+  --duration-slowest: 800ms;
 }
 
 /* =============================================================================
@@ -132,6 +169,15 @@
   --color-danger-bg: rgba(185,28,28,0.15);
   --color-info-bg: rgba(30,64,175,0.15);
   --color-accent-50: rgba(200,146,74,0.12);
+
+  /* liquid glass — dark */
+  --glass-bg: rgba(22, 23, 20, 0.55);
+  --glass-bg-strong: rgba(22, 23, 20, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  --gradient-surface: linear-gradient(145deg, #1C1D1A 0%, #161714 100%);
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.02), 0 8px 24px rgba(0,0,0,0.45);
 }
 
 /* Dark mode — root background (covers html + body + all layout containers) */
@@ -418,3 +464,139 @@ a:focus-visible {
 
 .animate-fade-in { animation: fade-in var(--duration-base) var(--ease); }
 .animate-scale-in { animation: scale-in var(--duration-base) var(--ease); }
+
+/* =============================================================================
+   PREMIUM FOUNDATION (T1) — display type, liquid glass, gradients, motion
+   ============================================================================= */
+
+/* Serif display — the product's "voice". Optical sizing for character. */
+.display, .serif {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+}
+.display-italic { font-family: var(--font-display); font-style: italic; font-weight: 400; }
+
+/* Text sizes for site-scale display headings */
+.t-6xl { font-size: var(--text-6xl); }
+.t-7xl { font-size: var(--text-7xl); }
+.t-8xl { font-size: var(--text-8xl); }
+
+/* Gold/emerald gradient text — statement headings & numbers */
+.text-gradient-gold {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.text-gradient-emerald {
+  background: linear-gradient(120deg, #1A6B53, #0F4C3A);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* Liquid glass surfaces — auth card, nav, modals, floating chips */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.glass-strong {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(1.5);
+  backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(1.5);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Gradient backgrounds */
+.bg-gradient-primary { background: var(--gradient-primary); }
+.bg-gradient-hero { background: var(--gradient-hero); }
+.bg-gradient-gold { background: var(--gradient-gold); }
+
+/* Fine grain/noise overlay for premium depth on dark gradients */
+.grain::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* === Additional motion === */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes shimmer {
+  0%   { background-position: -160% 0; }
+  100% { background-position: 260% 0; }
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(200,146,74,0.5); }
+  70%  { box-shadow: 0 0 0 10px rgba(200,146,74,0); }
+  100% { box-shadow: 0 0 0 0 rgba(200,146,74,0); }
+}
+
+.animate-reveal-up { animation: reveal-up var(--duration-slower) var(--ease-out) both; }
+.animate-float { animation: float 6s var(--ease-in-out) infinite; }
+
+/* Scroll-reveal — hidden ONLY when JS is active (html.js), so content is never
+   lost if scripts fail. JS toggles .is-visible on viewport entry (wired in T5). */
+html.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity var(--duration-slower) var(--ease-out),
+              transform var(--duration-slower) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+html.js [data-reveal].is-visible { opacity: 1; transform: none; }
+html.js [data-reveal][data-reveal-mode="scale"] { transform: translateY(28px) scale(0.96); }
+html.js [data-reveal][data-reveal-mode="left"]  { transform: translateX(-32px); }
+html.js [data-reveal][data-reveal-mode="right"] { transform: translateX(32px); }
+
+/* =============================================================================
+   ENHANCED INTERACTION MOTION — hover lift, shine, glow, living gradients
+   ============================================================================= */
+.hover-lift {
+  transition: transform var(--duration-slow) var(--ease-out),
+              box-shadow var(--duration-slow) var(--ease-out);
+}
+.hover-lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-2xl); }
+
+.hover-glow { transition: box-shadow var(--duration-slow) var(--ease-out); }
+.hover-glow:hover { box-shadow: var(--shadow-gold); }
+
+/* Sweeping sheen on hover — premium button/card shine */
+.shine { position: relative; overflow: hidden; }
+.shine::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: var(--gradient-sheen); background-size: 220% 100%;
+  background-position: -160% 0; opacity: 0;
+  transition: opacity var(--duration-base) var(--ease);
+}
+.shine:hover::before { opacity: 1; animation: shimmer 900ms var(--ease-out); }
+
+/* Living animated gradient — heroes, accent panels */
+.animate-gradient {
+  background-size: 220% 220%;
+  animation: gradient-shift 12s var(--ease-in-out) infinite;
+}
+.animate-pulse-ring { animation: pulse-ring 2.2s var(--ease-out) infinite; }
+
+/* Shimmer-loading placeholder (skeletons) */
+.shimmer {
+  background: linear-gradient(100deg,
+    var(--color-surface-2) 30%, var(--color-surface-3) 50%, var(--color-surface-2) 70%);
+  background-size: 220% 100%;
+  animation: shimmer 1.4s var(--ease-in-out) infinite;
+}
