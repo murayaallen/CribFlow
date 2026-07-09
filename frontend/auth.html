@@ -702,5 +702,18 @@
       else showToast('Check your email for a reset link.', 'success', { title: 'Reset link sent' });
     });
   </script>
+  <script>
+    // Friendly notice after an inactivity auto sign-out (T15).
+    (function () {
+      try {
+        if (new URLSearchParams(location.search).get('timeout') === '1' && typeof showToast === 'function') {
+          setTimeout(function () {
+            showToast('You were signed out after 10 minutes of inactivity. Please log in again.', 'info',
+              { title: 'Session expired', duration: 8000 });
+          }, 450);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </body>
 </html>
