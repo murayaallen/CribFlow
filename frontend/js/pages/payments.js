@@ -8,6 +8,13 @@ let UNMATCHED_TRANSACTIONS = [];
 let ALL_PAYMENTS = [];
 let LANDLORD_PROFILE = null;
 
+// Live auto-refresh (fixed cadence). Payments arrive from M-Pesa asynchronously,
+// so the page quietly re-checks and updates itself without a manual reload.
+const POLL_MS = 15000;
+let LAST_REFRESH = Date.now();
+let POLL_TIMER = null;
+let TICK_TIMER = null;
+
 (async function () {
   const user = await requireAuth();
   if (!user) return;
@@ -18,9 +25,10 @@ let LANDLORD_PROFILE = null;
   if (params.get('tab')) CURRENT_TAB = params.get('tab');
 
   await loadPayments();
+  startAutoRefresh();
 })();
 
-async function loadPayments() {
+async function fetchPaymentsData() {
   const { data: { user } } = await sb.auth.getUser();
   const [paymentsRes, unmatchedRes, profileRes] = await Promise.all([
     sb.from('payments').select(`*, tenants(full_name), rooms(name, properties(name))`)
@@ -28,12 +36,66 @@ async function loadPayments() {
     sb.from('mpesa_transactions').select('*').eq('matched', false).order('created_at', { ascending: false }),
     sb.from('profiles').select('full_name, business_name, phone, paybill_number').eq('id', user.id).single(),
   ]);
+  return {
+    payments: paymentsRes.data || [],
+    unmatched: unmatchedRes.data || [],
+    profile: profileRes.data || {},
+  };
+}
 
-  ALL_PAYMENTS = paymentsRes.data || [];
-  UNMATCHED_TRANSACTIONS = unmatchedRes.data || [];
-  LANDLORD_PROFILE = profileRes.data || {};
+async function loadPayments() {
+  const { payments, unmatched, profile } = await fetchPaymentsData();
+  ALL_PAYMENTS = payments;
+  UNMATCHED_TRANSACTIONS = unmatched;
+  LANDLORD_PROFILE = profile;
+  LAST_REFRESH = Date.now();
   renderPage(ALL_PAYMENTS, UNMATCHED_TRANSACTIONS);
 }
+
+/* ---- LIVE AUTO-REFRESH ---- */
+function startAutoRefresh() {
+  if (POLL_TIMER) return;                                  // set up once
+  TICK_TIMER = setInterval(updateRefreshLabel, 1000);      // "updated Ns ago"
+  POLL_TIMER = setInterval(pollPayments, POLL_MS);         // quiet data re-check
+  // Also refresh the moment the landlord returns to the tab.
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pollPayments(); });
+}
+
+async function pollPayments() {
+  if (document.hidden) return;                             // tab not visible
+  if (document.querySelector('.modal-backdrop')) return;   // don't disrupt an open modal
+  let data;
+  try { data = await fetchPaymentsData(); } catch { return; }
+
+  const prevPayCount = ALL_PAYMENTS.length;
+  const changed =
+    data.payments.length  !== ALL_PAYMENTS.length          ||
+    data.payments[0]?.id  !== ALL_PAYMENTS[0]?.id          ||
+    data.unmatched.length !== UNMATCHED_TRANSACTIONS.length ||
+    data.unmatched[0]?.id !== UNMATCHED_TRANSACTIONS[0]?.id;
+
+  ALL_PAYMENTS = data.payments;
+  UNMATCHED_TRANSACTIONS = data.unmatched;
+  LANDLORD_PROFILE = data.profile;
+  LAST_REFRESH = Date.now();
+
+  if (changed) {
+    renderPage(ALL_PAYMENTS, UNMATCHED_TRANSACTIONS);
+    const added = data.payments.length - prevPayCount;
+    if (added > 0) showToast(`${added} new payment${added > 1 ? 's' : ''} received`, 'success');
+  } else {
+    updateRefreshLabel();
+  }
+}
+
+function updateRefreshLabel() {
+  const el = document.getElementById('pay-refresh-label');
+  if (!el) return;
+  const s = Math.round((Date.now() - LAST_REFRESH) / 1000);
+  el.textContent = s < 3 ? 'just now' : s < 60 ? `${s}s ago` : `${Math.floor(s / 60)}m ago`;
+}
+
+function refreshNow() { loadPayments(); }
 
 function renderPage(payments, unmatched) {
   const today = new Date();
@@ -48,6 +110,10 @@ function renderPage(payments, unmatched) {
         <div class="page-subtitle">All recorded payments and pending M-Pesa transactions.</div>
       </div>
       <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="refreshNow()" id="pay-refresh" title="Auto-refreshes every 15s · click to refresh now">
+          <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--color-success);margin-right:7px;flex-shrink:0"></span>
+          <span style="font-size:12px;color:var(--color-text-muted)">Live · updated <span id="pay-refresh-label">just now</span></span>
+        </button>
         <button class="btn btn-primary" onclick="openManualPaymentModal()">${icon('plus')}<span>Record Payment</span></button>
       </div>
     </header>
