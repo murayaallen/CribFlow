@@ -281,6 +281,7 @@ html, body {
   line-height: 1.5;
   color: var(--color-text);
   background: var(--color-bg);
+  overflow-x: clip;                 /* never let a wide element scroll the whole page */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

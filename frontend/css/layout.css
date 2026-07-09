@@ -335,8 +335,11 @@
   }
   .sidebar.open + .sidebar-backdrop { display: block; }
 
-  /* Show bottom nav */
+  /* Show bottom nav + keep content clear of it */
   .bottom-nav { display: flex; }
+  .main { margin-left: 0; }
+  .page { padding: var(--space-5) var(--space-4) 84px; }
+  .page-header { padding-top: var(--space-6); }   /* clear the fixed menu toggle */
 
   /* Push page content above bottom nav */
   .main { padding-bottom: 60px; }
