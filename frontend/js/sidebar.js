@@ -5,7 +5,7 @@
 
 const NAV_ITEMS = [
   { section: 'Overview', items: [
-    { id: 'dashboard', label: 'Dashboard', href: '/index.html', icon: 'dashboard' },
+    { id: 'dashboard', label: 'Dashboard', href: '/dashboard.html', icon: 'dashboard' },
   ]},
   { section: 'Property', items: [
     { id: 'properties', label: 'Properties', href: '/properties.html', icon: 'building' },
@@ -99,7 +99,7 @@ async function renderSidebar(activeId = '') {
   `;
 
   const BOTTOM_NAV_ITEMS = [
-    { id: 'dashboard', label: 'Dashboard', href: '/index.html', icon: 'dashboard' },
+    { id: 'dashboard', label: 'Dashboard', href: '/dashboard.html', icon: 'dashboard' },
     { id: 'properties', label: 'Properties', href: '/properties.html', icon: 'building' },
     { id: 'tenants', label: 'Tenants', href: '/tenants.html', icon: 'users' },
     { id: 'billing', label: 'Billing', href: '/billing.html', icon: 'receipt' },

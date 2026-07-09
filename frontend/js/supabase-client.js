@@ -58,7 +58,7 @@ async function requireAuth() {
 async function redirectIfAuthed() {
   const user = await getCurrentUser();
   if (user) {
-    window.location.href = '/index.html';
+    window.location.href = '/dashboard.html';
   }
 }
 

@@ -3,34 +3,101 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard · CribFlow</title>
+  <title>CribFlow — Property management, refined · Kenya</title>
+  <meta name="description" content="Automated billing, instant M-Pesa reconciliation and live tenant balances — one calm, elite dashboard built for Kenya's landlords." />
   <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/components.css" />
-  <link rel="stylesheet" href="/css/layout.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <link rel="stylesheet" href="/css/site.css" />
   <script>document.documentElement.classList.add('js');</script>
-  <script src="/js/loader.js" data-context="dashboard"></script>
+  <script src="/js/loader.js" data-context="site"></script>
 </head>
-<body>
-  <div class="app">
-    <div id="sidebar"></div>
+<body class="site" data-nav="dark">
 
-    <div class="main">
-      <div class="page" id="page-content">
-        <div class="loading-overlay">
-          <div class="spinner spinner-lg"></div>
-          <span>Loading dashboard…</span>
+  <header id="site-nav"></header>
+
+  <!-- HERO -->
+  <section class="site-hero">
+    <div class="site-hero-media" style="background-image:url('/images/site/hero-westlands.jpg')"></div>
+    <div class="site-hero-inner">
+      <div class="site-eyebrow"><span class="site-eyebrow-dot"></span>Built for Kenya's landlords</div>
+      <h1>Collect rent.<br>Run your portfolio <em>with ease.</em></h1>
+      <p class="site-hero-sub">Automated billing, instant M-Pesa reconciliation, and live tenant balances — one calm, elite dashboard for the modern landlord.</p>
+      <div class="site-hero-actions">
+        <a href="/auth.html" class="btn btn-gold btn-lg">Start for free</a>
+        <a href="/features.html" class="btn btn-outline-light btn-lg">Explore features</a>
+      </div>
+      <div class="site-hero-chips">
+        <span class="site-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Direct M-Pesa payout</span>
+        <span class="site-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/></svg>Bank-grade security</span>
+        <span class="site-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l3-4 4 3 5-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Real-time balances</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES TEASER -->
+  <section class="site-section" id="features">
+    <div class="site-container">
+      <div class="site-section-head" data-reveal>
+        <span class="eyebrow">Everything in one place</span>
+        <h2>Your whole portfolio, beautifully in order.</h2>
+        <p>From the first bill to the last shilling reconciled — CribFlow handles the busywork so you can focus on growing.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card" data-reveal data-reveal-delay="0">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg></div>
+          <h3>Automated billing</h3>
+          <p>Rent, water, late fees and carried-over balances calculated and generated every month — automatically.</p>
+        </div>
+        <div class="feature-card" data-reveal data-reveal-delay="80">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg></div>
+          <h3>M-Pesa first</h3>
+          <p>Tenants pay your paybill with their unit number; payments match to the right tenant instantly — money settles straight to you.</p>
+        </div>
+        <div class="feature-card" data-reveal data-reveal-delay="160">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+          <h3>Live balances</h3>
+          <p>Every tenant's running balance, credit and arrears — always current, never a spreadsheet guess.</p>
+        </div>
+        <div class="feature-card" data-reveal data-reveal-delay="0">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg></div>
+          <h3>Water tracking</h3>
+          <p>Log meter readings per unit; usage and charges flow straight onto the monthly bill at your set rate.</p>
+        </div>
+        <div class="feature-card" data-reveal data-reveal-delay="80">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M8 10h.01"/></svg></div>
+          <h3>Portfolio overview</h3>
+          <p>Occupancy, collections and outstanding across every property, on one calm dashboard.</p>
+        </div>
+        <div class="feature-card" data-reveal data-reveal-delay="160">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></div>
+          <h3>Instant receipts</h3>
+          <p>Professional PDF receipts and email confirmations sent the moment a payment lands.</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <script src="/js/config.js"></script>
-  <script src="/js/icons.js"></script>
-  <script src="/js/utils.js"></script>
-  <script src="/js/supabase-client.js"></script>
-  <script src="/js/sidebar.js"></script>
-  <script src="/js/pages/dashboard.js"></script>
+  <!-- STATEMENT BAND -->
+  <section class="site-section dark grain">
+    <div class="site-container site-cta" data-reveal>
+      <span class="eyebrow" style="color:var(--color-accent-light);display:block;margin-bottom:14px">Why CribFlow</span>
+      <h2>Built for the way Kenya rents.</h2>
+      <p>Paybill payments, unit account numbers, water meters, deposits and arrears — modelled exactly, so the numbers are always right.</p>
+      <a href="/how-it-works.html" class="btn btn-gold btn-lg" style="margin-top:8px">See how it works</a>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="site-section" style="background:var(--gradient-primary-deep)">
+    <div class="site-container site-cta" data-reveal>
+      <h2 style="color:#fff">Your portfolio deserves better.</h2>
+      <p>Replace spreadsheets and WhatsApp with one calm dashboard, built for Kenya's landlords.</p>
+      <a href="/auth.html" class="btn btn-gold btn-lg">Start for free today</a>
+    </div>
+  </section>
+
+  <footer id="site-footer"></footer>
+
+  <script src="/js/site.js"></script>
 </body>
 </html>

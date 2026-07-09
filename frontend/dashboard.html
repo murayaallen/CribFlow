@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard · CribFlow</title>
+  <link rel="stylesheet" href="/css/design-system.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/layout.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script>document.documentElement.classList.add('js');</script>
+  <script src="/js/loader.js" data-context="dashboard"></script>
+</head>
+<body>
+  <div class="app">
+    <div id="sidebar"></div>
+
+    <div class="main">
+      <div class="page" id="page-content">
+        <div class="loading-overlay">
+          <div class="spinner spinner-lg"></div>
+          <span>Loading dashboard…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/pages/dashboard.js"></script>
+</body>
+</html>
