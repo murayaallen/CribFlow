@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+    <defs>
+        <linearGradient id="goldGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#C8924A" />
+            <stop offset="100%" stop-color="#E8B770" />
+        </linearGradient>
+    </defs>
+    
+    <path d="M 256 120 L 130 240 L 150 240 L 150 400 L 362 400 L 362 240 L 382 240 Z" fill="none" stroke="#0F4C3A" stroke-width="24" stroke-linejoin="round"/>
+    <path d="M 170 160 L 170 100 L 200 100 L 200 135" fill="none" stroke="#0F4C3A" stroke-width="20" stroke-linejoin="round"/>
+    <rect x="226" y="240" width="60" height="100" fill="none" stroke="#0F4C3A" stroke-width="12" />
+    <line x1="226" y1="290" x2="286" y2="290" stroke="#0F4C3A" stroke-width="12" />
+    <line x1="256" y1="240" x2="256" y2="340" stroke="#0F4C3A" stroke-width="12" />
+    
+    <path d="M 100 380 C 180 380, 220 200, 380 160" fill="none" stroke="url(#goldGrad)" stroke-width="28" stroke-linecap="round"/>
+    <polygon points="360,130 410,150 365,190" fill="#E8B770"/>
+</svg>

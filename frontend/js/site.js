@@ -6,14 +6,8 @@
 (function () {
   document.documentElement.classList.add('js');
 
-  // Logo-agnostic gold house glyph (swapped for the real logo at T17).
-  var GLYPH =
-    '<svg class="site-logo-glyph" viewBox="0 0 32 32" fill="none" aria-hidden="true">' +
-      '<rect width="32" height="32" rx="8" fill="#0F4C3A"/>' +
-      '<path d="M8 17 L16 9 L24 17" stroke="#E8B770" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<path d="M10.5 15.5 V23 H21.5 V15.5" stroke="#E8B770" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<path d="M12 22 Q16 19.5 20 22" stroke="#C8924A" stroke-width="1.6" stroke-linecap="round"/>' +
-    '</svg>';
+  // Real CribFlow app-icon (emerald tile + gold mark — legible on dark & light).
+  var GLYPH = '<img class="site-logo-glyph" src="/images/logo/cribflow-icon.svg" alt="" width="30" height="30" />';
 
   var WORD = '<span class="w-crib">Crib</span><span class="w-flow">Flow</span>';
   var LINKS = [
