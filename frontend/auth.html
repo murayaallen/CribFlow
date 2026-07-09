@@ -82,6 +82,20 @@
     .auth-side .auth-brand-name { font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 24px; }
     .auth-pitch-tag, .auth-brand-tag-line, .auth-footer { font-family: 'Manrope', sans-serif; }
 
+    /* Property imagery behind the brand panel, merged with an emerald wash */
+    .auth-side { position: relative; overflow: hidden; }
+    .auth-side-image {
+      position: absolute; inset: 0; z-index: 0;
+      background-image: url('/images/site/kileleshwa-midrise.jpg');
+      background-size: cover; background-position: center;
+      transform: scale(1.04);
+    }
+    .auth-side-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(155deg, rgba(12,59,44,0.82) 0%, rgba(7,31,23,0.93) 100%);
+    }
+    .auth-side-content { position: relative; z-index: 2; }
+
     .auth-stats {
       display: flex; gap: 0;
       margin-bottom: 32px;
