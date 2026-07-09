@@ -92,9 +92,9 @@
   font-size: var(--text-base);
   font-weight: 500;
   line-height: 1;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   border: 1px solid transparent;
-  transition: all var(--duration-fast) var(--ease);
+  transition: all var(--duration-base) var(--ease);
   white-space: nowrap;
   user-select: none;
   text-decoration: none;
@@ -104,10 +104,19 @@
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-primary {
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(135deg, #1A6B53 0%, #0F4C3A 100%);
   color: var(--color-text-on-primary);
   box-shadow: 0 1px 2px rgba(10, 53, 40, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
 }
+/* premium shine sweep on hover */
+.btn-primary::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%);
+  transform: translateX(-120%); transition: transform var(--duration-slower) var(--ease-out);
+}
+.btn-primary:hover:not(:disabled)::after { transform: translateX(120%); }
 .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, #1F7D60 0%, #0A3528 100%);
   box-shadow: 0 4px 16px rgba(10, 53, 40, 0.3), 0 2px 4px rgba(10, 53, 40, 0.15);
@@ -182,8 +191,8 @@
 
 .card-elevated {
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  box-shadow: 0 1px 3px rgba(15, 76, 58, 0.06), 0 8px 24px rgba(15, 76, 58, 0.05);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--color-border);
 }
 
