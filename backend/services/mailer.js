@@ -60,13 +60,16 @@ function wrap(content, businessName = 'CribFlow') {
   return `
   <!DOCTYPE html><html><body style="margin:0;padding:0;background:#FAFAF6">
     <table role="presentation" style="width:100%;background:#FAFAF6;padding:32px 16px"><tr><td>
-      <table role="presentation" style="${baseStyles};background:white;border-radius:12px;overflow:hidden;border:1px solid #E5E2D6">
-        <tr><td style="background:linear-gradient(135deg,#0F4C3A 0%,#1A6B53 100%);padding:24px 32px;color:white;">
-          <div style="font-size:14px;opacity:.85;letter-spacing:.05em;text-transform:uppercase;font-weight:600">${businessName}</div>
+      <table role="presentation" style="${baseStyles};background:white;border-radius:16px;overflow:hidden;border:1px solid #E5E2D6;box-shadow:0 8px 30px rgba(15,76,58,0.10)">
+        <tr><td style="background:linear-gradient(135deg,#1A6B53 0%,#0F4C3A 60%,#0A3528 100%);padding:26px 32px;border-bottom:3px solid #C8924A">
+          <div style="font-family:Georgia,'Times New Roman',serif;font-size:23px;color:#ffffff;letter-spacing:-0.4px;line-height:1">
+            <span style="font-weight:400;opacity:.9">Crib</span><span style="font-weight:700">Flow</span>
+          </div>
+          <div style="font-size:11px;color:#E8B770;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin-top:6px">${businessName}</div>
         </td></tr>
-        <tr><td style="padding:32px">${content}</td></tr>
+        <tr><td style="padding:34px 32px">${content}</td></tr>
         <tr><td style="background:#F5F4EE;padding:18px 32px;font-size:12px;color:#8A877A;text-align:center;border-top:1px solid #E5E2D6">
-          Sent by ${businessName} · powered by CribFlow
+          Sent by ${businessName} · powered by <span style="color:#0F4C3A;font-weight:600">CribFlow</span>
         </td></tr>
       </table>
     </td></tr></table>
