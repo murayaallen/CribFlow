@@ -193,6 +193,12 @@
   background: var(--gradient-primary); color: #fff; box-shadow: var(--shadow-primary); margin-bottom: auto;
 }
 .bento-icon svg { width: 22px; height: 22px; }
+.bento-logo {
+  height: 46px; min-width: 64px; max-width: 120px; padding: 7px 12px; margin-bottom: auto;
+  background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);
+}
+.bento-logo img { max-height: 100%; max-width: 100%; width: auto; object-fit: contain; display: block; }
 .bento-tile h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 18px 0 6px; }
 .bento-tile p { font-size: 14px; line-height: 1.55; color: var(--color-text-secondary); }
 
