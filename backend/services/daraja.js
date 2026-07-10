@@ -35,7 +35,7 @@ async function registerUrls({ consumerKey, consumerSecret, environment, shortcod
   if (!shortcode || !confirmationUrl) throw new Error('shortcode and confirmationUrl are required');
   const token = await getAccessToken({ consumerKey, consumerSecret, environment });
   const { data } = await axios.post(
-    `${baseFor(environment)}/mpesa/c2b/v1/registerurl`,
+    `${baseFor(environment)}/mpesa/c2b/v2/registerurl`,
     {
       ShortCode: shortcode,
       ResponseType: 'Completed',          // process even if validation is skipped
@@ -56,7 +56,7 @@ async function simulateC2B({ consumerKey, consumerSecret, environment, shortcode
   if (environment === 'production') throw new Error('Simulate is only available in sandbox mode');
   const token = await getAccessToken({ consumerKey, consumerSecret, environment });
   const { data } = await axios.post(
-    `${baseFor(environment)}/mpesa/c2b/v1/simulate`,
+    `${baseFor(environment)}/mpesa/c2b/v2/simulate`,
     {
       ShortCode: shortcode,
       CommandID: 'CustomerPayBillOnline',
