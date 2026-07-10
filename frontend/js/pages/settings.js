@@ -500,5 +500,5 @@ async function signOutEverywhere() {
   });
   if (!ok) return;
   await sb.auth.signOut({ scope: 'global' });
-  window.location.href = '/auth.html';
+  window.location.href = '/auth';
 }

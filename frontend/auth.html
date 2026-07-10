@@ -682,7 +682,7 @@
         showToast(error.message, 'error', { title: 'Sign in failed' });
         return;
       }
-      window.location.href = '/dashboard.html';
+      window.location.href = '/dashboard';
     });
 
     document.getElementById('form-signup').addEventListener('submit', async (e) => {
@@ -703,7 +703,7 @@
       }
       if (data.session) {
         if (phone) await sb.from('profiles').update({ phone }).eq('id', data.user.id);
-        window.location.href = '/dashboard.html';
+        window.location.href = '/dashboard';
       } else {
         showToast('Check your email to confirm your account.', 'success', { title: 'Almost there!' });
         btn.disabled = false;

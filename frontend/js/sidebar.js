@@ -5,19 +5,19 @@
 
 const NAV_ITEMS = [
   { section: 'Overview', items: [
-    { id: 'dashboard', label: 'Dashboard', href: '/dashboard.html', icon: 'dashboard' },
+    { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
   ]},
   { section: 'Property', items: [
-    { id: 'properties', label: 'Properties', href: '/properties.html', icon: 'building' },
-    { id: 'tenants', label: 'Tenants', href: '/tenants.html', icon: 'users' },
+    { id: 'properties', label: 'Properties', href: '/properties', icon: 'building' },
+    { id: 'tenants', label: 'Tenants', href: '/tenants', icon: 'users' },
   ]},
   { section: 'Finances', items: [
-    { id: 'billing', label: 'Billing', href: '/billing.html', icon: 'receipt' },
-    { id: 'water', label: 'Water Readings', href: '/water.html', icon: 'droplet' },
-    { id: 'payments', label: 'Payments', href: '/payments.html', icon: 'card' },
+    { id: 'billing', label: 'Billing', href: '/billing', icon: 'receipt' },
+    { id: 'water', label: 'Water Readings', href: '/water', icon: 'droplet' },
+    { id: 'payments', label: 'Payments', href: '/payments', icon: 'card' },
   ]},
   { section: 'Insights', items: [
-    { id: 'reports', label: 'Reports', href: '/reports.html', icon: 'chart' },
+    { id: 'reports', label: 'Reports', href: '/reports', icon: 'chart' },
   ]},
 ];
 
@@ -53,7 +53,7 @@ async function renderSidebar(activeId = '') {
       </nav>
 
       <div class="sidebar-footer">
-        <a href="/settings.html" class="sidebar-link ${activeId === 'settings' ? 'active' : ''}" style="margin-bottom: 4px">
+        <a href="/settings" class="sidebar-link ${activeId === 'settings' ? 'active' : ''}" style="margin-bottom: 4px">
           ${icon('settings')}
           <span>Settings</span>
         </a>
@@ -75,11 +75,11 @@ async function renderSidebar(activeId = '') {
             </div>
           </div>
           <div class="user-menu" id="user-menu">
-            <button class="user-menu-item" onclick="window.location.href='/settings.html'">
+            <button class="user-menu-item" onclick="window.location.href='/settings'">
               ${icon('user')}
               <span>Profile</span>
             </button>
-            <button class="user-menu-item" onclick="window.location.href='/settings.html'">
+            <button class="user-menu-item" onclick="window.location.href='/settings'">
               ${icon('settings')}
               <span>Settings</span>
             </button>
@@ -99,11 +99,11 @@ async function renderSidebar(activeId = '') {
   `;
 
   const BOTTOM_NAV_ITEMS = [
-    { id: 'dashboard', label: 'Dashboard', href: '/dashboard.html', icon: 'dashboard' },
-    { id: 'properties', label: 'Properties', href: '/properties.html', icon: 'building' },
-    { id: 'tenants', label: 'Tenants', href: '/tenants.html', icon: 'users' },
-    { id: 'billing', label: 'Billing', href: '/billing.html', icon: 'receipt' },
-    { id: 'payments', label: 'Payments', href: '/payments.html', icon: 'card' },
+    { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+    { id: 'properties', label: 'Properties', href: '/properties', icon: 'building' },
+    { id: 'tenants', label: 'Tenants', href: '/tenants', icon: 'users' },
+    { id: 'billing', label: 'Billing', href: '/billing', icon: 'receipt' },
+    { id: 'payments', label: 'Payments', href: '/payments', icon: 'card' },
   ];
 
   const bottomNavHtml = `

@@ -12,9 +12,9 @@
   var WORD = '<span class="w-crib">Crib</span><span class="w-flow">Flow</span>';
   var LINKS = [
     { href: '/', label: 'Home' },
-    { href: '/features.html', label: 'Features' },
-    { href: '/how-it-works.html', label: 'How it works' },
-    { href: '/about.html', label: 'About' },
+    { href: '/features', label: 'Features' },
+    { href: '/how-it-works', label: 'How it works' },
+    { href: '/about', label: 'About' },
   ];
 
   var path = location.pathname.replace(/index\.html$/, '') || '/';
@@ -40,7 +40,7 @@
     nav.innerHTML =
       '<a class="site-logo" href="/">' + GLYPH + WORD + '</a>' +
       '<nav class="site-nav-links">' + navLinksHTML('site-nav-link') +
-        '<a class="btn btn-primary site-nav-cta" href="/auth.html">Log in</a>' +
+        '<a class="btn btn-primary site-nav-cta" href="/auth">Log in</a>' +
       '</nav>' +
       '<div class="site-nav-right">' +
         '<button class="site-theme-toggle" id="site-theme-toggle" aria-label="Toggle light/dark">' + themeIcon() + '</button>' +
@@ -63,7 +63,7 @@
       '<button class="site-drawer-close" aria-label="Close">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg>' +
       '</button>' + navLinksHTML('') +
-      '<a class="btn btn-primary btn-lg" href="/auth.html">Log in</a>';
+      '<a class="btn btn-primary btn-lg" href="/auth">Log in</a>';
     document.body.appendChild(drawer);
     nav.querySelector('.site-nav-toggle').addEventListener('click', function () { drawer.classList.add('open'); document.body.style.overflow = 'hidden'; });
     drawer.querySelector('.site-drawer-close').addEventListener('click', function () { drawer.classList.remove('open'); document.body.style.overflow = ''; });
@@ -81,10 +81,10 @@
           '<p>Property management, refined — automated billing and M-Pesa reconciliation for Kenya’s landlords.</p>' +
         '</div>' +
         '<div><h4>Product</h4>' +
-          '<a href="/features.html">Features</a><a href="/how-it-works.html">How it works</a><a href="/auth.html">Log in</a>' +
+          '<a href="/features">Features</a><a href="/how-it-works">How it works</a><a href="/auth">Log in</a>' +
         '</div>' +
         '<div><h4>Company</h4>' +
-          '<a href="/about.html">About</a><a href="mailto:info@flows.co.ke">Contact</a>' +
+          '<a href="/about">About</a><a href="mailto:info@flows.co.ke">Contact</a>' +
         '</div>' +
       '</div>' +
       '<div class="site-footer-bottom">' +

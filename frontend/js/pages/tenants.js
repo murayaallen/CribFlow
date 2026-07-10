@@ -145,7 +145,7 @@ function renderTable(tenants) {
             const expired = leaseEnd && leaseEnd < today;
 
             return `
-              <tr onclick="window.location.href='/tenant-detail.html?id=${t.id}'">
+              <tr onclick="window.location.href='/tenant-detail?id=${t.id}'">
                 <td>
                   <div style="display: flex; align-items: center; gap: 12px">
                     <div class="avatar avatar-sm">${getInitials(t.full_name)}</div>

@@ -51,7 +51,7 @@ function renderPropertyGrid(properties) {
         const occupied = rooms.filter(r => r.status === 'occupied').length;
         const vacant = rooms.filter(r => r.status === 'vacant').length;
         return `
-          <a href="/property-detail.html?id=${p.id}" class="property-card" style="text-decoration: none">
+          <a href="/property-detail?id=${p.id}" class="property-card" style="text-decoration: none">
             <div class="property-card-header">
               <div class="property-card-name">${escapeHtml(p.name)}</div>
               ${p.address ? `<div class="property-card-address">${escapeHtml(p.address)}${p.county ? ', ' + escapeHtml(p.county) : ''}</div>` : ''}
@@ -103,7 +103,7 @@ async function openAddPropertyModal() {
         <p style="font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; max-width: 360px; margin: 0 auto 20px">
           Your current plan doesn't allow more properties. Upgrade to Basic or Pro to manage more.
         </p>
-        <a href="/settings.html" class="btn btn-primary">${icon('zap')}<span>View Plans</span></a>
+        <a href="/settings" class="btn btn-primary">${icon('zap')}<span>View Plans</span></a>
       </div>
     `, { title: 'Plan limit reached' });
     return;
@@ -318,6 +318,6 @@ async function openAddPropertyModal() {
 
     close();
     showToast(`${name} created successfully`, 'success');
-    setTimeout(() => { window.location.href = `/property-detail.html?id=${property.id}`; }, 600);
+    setTimeout(() => { window.location.href = `/property-detail?id=${property.id}`; }, 600);
   });
 }

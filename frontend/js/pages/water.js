@@ -91,7 +91,7 @@ function renderPage(property, rooms, currentByRoom, prevByRoom) {
           <div class="empty-state-icon">${icon('door')}</div>
           <h3>No rooms in this property</h3>
           <p>Add rooms to ${escapeHtml(property.name)} first.</p>
-          <a href="/property-detail.html?id=${property.id}" class="btn btn-primary">Manage Property</a>
+          <a href="/property-detail?id=${property.id}" class="btn btn-primary">Manage Property</a>
         </div>
       </div>
     ` : `
@@ -245,7 +245,7 @@ function renderEmptyNoProperties() {
         <div class="empty-state-icon">${icon('building')}</div>
         <h3>Add a property first</h3>
         <p>You need at least one property with rooms before you can enter water meter readings.</p>
-        <a href="/properties.html" class="btn btn-primary">${icon('plus')}<span>Add Property</span></a>
+        <a href="/properties" class="btn btn-primary">${icon('plus')}<span>Add Property</span></a>
       </div>
     </div>
   `;

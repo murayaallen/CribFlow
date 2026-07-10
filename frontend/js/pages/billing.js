@@ -178,7 +178,7 @@ function renderBillRow(b) {
         <div style="display: flex; gap: 4px; justify-content: flex-end">
           ${Number(b.balance) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="openRecordPaymentModal('${b.id}', '${b.tenant_id}', '${b.room_id}', ${b.balance})">${icon('plus')}<span>Pay</span></button>` : ''}
           ${Number(b.balance) > 0 && b.tenants?.email ? `<button class="btn btn-ghost btn-sm" title="Email reminder" onclick="sendReminder('${b.id}', this)">${icon('mail')}</button>` : ''}
-          <button class="btn btn-ghost btn-sm" onclick="window.location.href='/tenant-detail.html?id=${b.tenant_id}'">${icon('externalLink')}</button>
+          <button class="btn btn-ghost btn-sm" onclick="window.location.href='/tenant-detail?id=${b.tenant_id}'">${icon('externalLink')}</button>
         </div>
       </td>
     </tr>

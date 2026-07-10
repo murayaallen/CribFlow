@@ -111,8 +111,8 @@ async function renderDashboard(profile) {
         <div class="page-subtitle">Here's how your properties are performing in ${fullMonthName(month)}.</div>
       </div>
       <div class="page-actions">
-        <a href="/properties.html" class="btn btn-secondary">${icon('building')}<span>View Properties</span></a>
-        <a href="/billing.html" class="btn btn-primary">${icon('receipt')}<span>Open Billing</span></a>
+        <a href="/properties" class="btn btn-secondary">${icon('building')}<span>View Properties</span></a>
+        <a href="/billing" class="btn btn-primary">${icon('receipt')}<span>Open Billing</span></a>
       </div>
     </header>
 
@@ -214,7 +214,7 @@ async function renderDashboard(profile) {
       <div class="card-elevated">
         <div class="card-header">
           <div class="card-title">Recent Payments</div>
-          <a href="/payments.html" class="btn btn-ghost btn-sm">View all ${icon('arrowRight')}</a>
+          <a href="/payments" class="btn btn-ghost btn-sm">View all ${icon('arrowRight')}</a>
         </div>
         <div class="card-body" style="padding: 0">
           ${payments.length === 0 ? renderEmptyMini('inbox', 'No payments yet', 'Payments will appear here as soon as you record one.') : renderPaymentsList(payments)}
@@ -224,7 +224,7 @@ async function renderDashboard(profile) {
       <div class="card-elevated">
         <div class="card-header">
           <div class="card-title">Top Owing</div>
-          <a href="/reports.html?tab=arrears" class="btn btn-ghost btn-sm">Full report ${icon('arrowRight')}</a>
+          <a href="/reports?tab=arrears" class="btn btn-ghost btn-sm">Full report ${icon('arrowRight')}</a>
         </div>
         <div class="card-body" style="padding: 0">
           ${topOwing.length === 0 ? renderEmptyMini('checkCircle', 'No outstanding balances', 'All tenants are up to date.') : renderTopOwing(topOwing)}
@@ -487,7 +487,7 @@ function renderTopOwing(list) {
   return `
     <div style="padding: 8px 0">
       ${list.map(item => `
-        <a href="/tenant-detail.html?id=${item.tenant?.id}" style="display: flex; align-items: center; gap: 12px; padding: 10px 24px; text-decoration: none; transition: background 0.15s" onmouseover="this.style.background='var(--color-surface-2)'" onmouseout="this.style.background=''">
+        <a href="/tenant-detail?id=${item.tenant?.id}" style="display: flex; align-items: center; gap: 12px; padding: 10px 24px; text-decoration: none; transition: background 0.15s" onmouseover="this.style.background='var(--color-surface-2)'" onmouseout="this.style.background=''">
           <div class="avatar avatar-sm">${getInitials(item.tenant?.full_name || '?')}</div>
           <div style="flex: 1; min-width: 0">
             <div style="font-size: 14px; font-weight: 500; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(item.tenant?.full_name || 'Unknown')}</div>
@@ -536,7 +536,7 @@ function renderUnmatchedAlert(count) {
           <div style="font-size: 14px; font-weight: 600">${count} M-Pesa ${count === 1 ? 'payment needs' : 'payments need'} matching</div>
           <div style="font-size: 13px; color: var(--color-text-secondary); margin-top: 2px">Some payments couldn't be auto-matched to a tenant. Review and assign them manually.</div>
         </div>
-        <a href="/payments.html?tab=unmatched" class="btn btn-secondary btn-sm">Review</a>
+        <a href="/payments?tab=unmatched" class="btn btn-secondary btn-sm">Review</a>
       </div>
     </div>
   `;
@@ -554,7 +554,7 @@ function renderPropertiesOverview(properties, rooms) {
     <section class="section">
       <div class="flex justify-between items-center" style="margin-bottom: 16px">
         <h3 style="font-size: 16px">Your Properties</h3>
-        <a href="/properties.html" class="btn btn-ghost btn-sm">View all ${icon('arrowRight')}</a>
+        <a href="/properties" class="btn btn-ghost btn-sm">View all ${icon('arrowRight')}</a>
       </div>
       <div class="property-grid">
         ${properties.slice(0, 3).map((p, idx) => {
@@ -564,7 +564,7 @@ function renderPropertiesOverview(properties, rooms) {
           const occupancyPct = propRooms.length ? Math.round((occupied / propRooms.length) * 100) : 0;
           const imgSrc = PROP_IMAGES[idx % PROP_IMAGES.length];
           return `
-            <a href="/property-detail.html?id=${p.id}" class="property-card" style="text-decoration: none; overflow: hidden; position: relative;">
+            <a href="/property-detail?id=${p.id}" class="property-card" style="text-decoration: none; overflow: hidden; position: relative;">
               <div style="
                 position: absolute; inset: 0;
                 background: url('${imgSrc}') center/cover no-repeat;
@@ -626,7 +626,7 @@ function renderFirstRunCTA() {
         <p style="font-size: 14px; color: var(--color-text-secondary); max-width: 420px; margin: 0 auto 24px; line-height: 1.6">
           Get started by registering a property. You'll set up rooms, water rates, and naming conventions in just a few clicks.
         </p>
-        <a href="/properties.html?action=add" class="btn btn-primary btn-lg">${icon('plus')}<span>Add Property</span></a>
+        <a href="/properties?action=add" class="btn btn-primary btn-lg">${icon('plus')}<span>Add Property</span></a>
       </div>
     </section>
   `;

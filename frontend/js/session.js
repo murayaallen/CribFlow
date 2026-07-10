@@ -36,7 +36,7 @@
   async function logout() {
     clearWarn();
     try { if (window.sb && sb.auth) await sb.auth.signOut(); } catch (e) {}
-    window.location.href = '/auth.html?timeout=1';
+    window.location.href = '/auth?timeout=1';
   }
 
   ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click', 'wheel'].forEach(function (ev) {

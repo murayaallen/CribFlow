@@ -59,7 +59,7 @@ function renderPage(bills, payments) {
   const html = `
     <header class="page-header">
       <div class="page-title-block">
-        <a href="/tenants.html" class="btn btn-ghost btn-sm" style="padding: 4px 8px; margin-bottom: 8px">${icon('chevronLeft')}<span>All tenants</span></a>
+        <a href="/tenants" class="btn btn-ghost btn-sm" style="padding: 4px 8px; margin-bottom: 8px">${icon('chevronLeft')}<span>All tenants</span></a>
         <div style="display: flex; align-items: center; gap: 16px">
           <div class="avatar avatar-lg">${getInitials(t.full_name)}</div>
           <div>
@@ -303,7 +303,7 @@ function renderNotFound() {
         <div class="empty-state-icon">${icon('alert')}</div>
         <h3>Tenant not found</h3>
         <p>The tenant you're looking for doesn't exist or you don't have access.</p>
-        <a href="/tenants.html" class="btn btn-primary">Back to Tenants</a>
+        <a href="/tenants" class="btn btn-primary">Back to Tenants</a>
       </div>
     </div>
   `;

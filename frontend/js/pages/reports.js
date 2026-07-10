@@ -225,7 +225,7 @@ async function loadArrearsReport() {
                     <div style="font-size: 11px; color: var(--color-text-muted)">${periods}</div>
                   </td>
                   <td class="numeric" style="font-weight: 600; color: var(--color-danger); font-size: 15px">${formatMoney(t.total)}</td>
-                  <td><button class="btn btn-secondary btn-sm" onclick="window.location.href='/tenant-detail.html?id=${t.bills[0].tenant_id}'">${icon('externalLink')}<span>View</span></button></td>
+                  <td><button class="btn btn-secondary btn-sm" onclick="window.location.href='/tenant-detail?id=${t.bills[0].tenant_id}'">${icon('externalLink')}<span>View</span></button></td>
                 </tr>
               `;
             }).join('')}

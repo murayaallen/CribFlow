@@ -41,14 +41,14 @@ async function getCurrentProfile() {
 
 async function signOut() {
   await sb.auth.signOut();
-  window.location.href = '/auth.html';
+  window.location.href = '/';   // back to the public website after signing out
 }
 
 /* Run on every protected page — redirects to auth if not logged in */
 async function requireAuth() {
   const user = await getCurrentUser();
   if (!user) {
-    window.location.href = '/auth.html';
+    window.location.href = '/auth';
     return null;
   }
   return user;
@@ -58,7 +58,7 @@ async function requireAuth() {
 async function redirectIfAuthed() {
   const user = await getCurrentUser();
   if (user) {
-    window.location.href = '/dashboard.html';
+    window.location.href = '/dashboard';
   }
 }
 

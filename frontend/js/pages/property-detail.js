@@ -87,7 +87,7 @@ function renderPage(rooms) {
   const html = `
     <header class="page-header">
       <div class="page-title-block">
-        <a href="/properties.html" class="btn btn-ghost btn-sm" style="padding: 4px 8px; margin-bottom: 8px">${icon('chevronLeft')}<span>All properties</span></a>
+        <a href="/properties" class="btn btn-ghost btn-sm" style="padding: 4px 8px; margin-bottom: 8px">${icon('chevronLeft')}<span>All properties</span></a>
         <div class="page-title">${escapeHtml(CURRENT_PROPERTY.name)}</div>
         <div class="page-subtitle">
           ${CURRENT_PROPERTY.address ? escapeHtml(CURRENT_PROPERTY.address) : 'No address set'}
@@ -195,7 +195,7 @@ function renderNotFound() {
         <div class="empty-state-icon">${icon('alert')}</div>
         <h3>Property not found</h3>
         <p>The property you're looking for doesn't exist or you don't have access to it.</p>
-        <a href="/properties.html" class="btn btn-primary">Back to Properties</a>
+        <a href="/properties" class="btn btn-primary">Back to Properties</a>
       </div>
     </div>
   `;
@@ -360,14 +360,14 @@ async function openRoomDetail(roomId) {
       <div class="detail-row"><span class="detail-label">Deposit paid</span><span class="detail-value">${formatMoney(tenant.deposit_paid)}</span></div>
     </div>
     <div style="margin-top: 16px; display: flex; gap: 8px">
-      <a href="/tenant-detail.html?id=${tenant.id}" class="btn btn-secondary btn-sm">${icon('user')}<span>Full profile</span></a>
+      <a href="/tenant-detail?id=${tenant.id}" class="btn btn-secondary btn-sm">${icon('user')}<span>Full profile</span></a>
     </div>
   ` : `
     <div class="empty-state" style="padding: 32px 16px">
       <div class="empty-state-icon" style="width: 44px; height: 44px">${icon('user')}</div>
       <h3 style="font-size: 14px">No tenant assigned</h3>
       <p style="font-size: 13px">This room is currently vacant.</p>
-      <a href="/tenants.html?action=add&room=${room.id}" class="btn btn-primary btn-sm">${icon('plus')}<span>Add tenant</span></a>
+      <a href="/tenants?action=add&room=${room.id}" class="btn btn-primary btn-sm">${icon('plus')}<span>Add tenant</span></a>
     </div>
   `;
 
@@ -414,7 +414,7 @@ async function openRoomDetail(roomId) {
 
   const footer = `
     <button class="btn btn-secondary" id="edit-room-btn">${icon('edit')}<span>Edit Room</span></button>
-    ${!tenant ? `<a href="/tenants.html?action=add&room=${room.id}" class="btn btn-primary">${icon('plus')}<span>Add Tenant</span></a>` : ''}
+    ${!tenant ? `<a href="/tenants?action=add&room=${room.id}" class="btn btn-primary">${icon('plus')}<span>Add Tenant</span></a>` : ''}
   `;
 
   const { close } = openModal(content, { title: `Room ${room.name}`, size: 'lg', footer });
@@ -488,7 +488,7 @@ function openEditPropertyModal() {
     if (!ok) return;
     await sb.from('properties').update({ archived: true }).eq('id', CURRENT_PROPERTY.id);
     showToast('Property archived', 'success');
-    setTimeout(() => { window.location.href = '/properties.html'; }, 600);
+    setTimeout(() => { window.location.href = '/properties'; }, 600);
   });
 
   document.getElementById('save-edit').addEventListener('click', async () => {
