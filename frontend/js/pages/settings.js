@@ -107,8 +107,7 @@ function renderSubscriptionTab() {
         <div class="card-elevated" style="${p.current ? 'border-color: var(--color-primary); border-width: 2px' : ''}">
           <div class="card-body-tight" style="padding: 24px; text-align: center">
             ${p.current ? '<div class="badge badge-primary" style="margin-bottom: 12px">Current plan</div>' : ''}
-            <div style="font-size: 20px; font-weight: 600; margin-bottom: 4px">${p.name}</div>
-            <div style="font-size: 24px; font-weight: 700; color: var(--color-primary); margin-bottom: 16px">${p.price}</div>
+            <div style="font-size: 20px; font-weight: 600; margin-bottom: 16px">${p.name}</div>
             <div style="text-align: left; font-size: 13px; color: var(--color-text-secondary); line-height: 1.8">
               <div class="flex items-center gap-2">${icon('check')} ${p.props} properties</div>
               <div class="flex items-center gap-2">${icon('check')} ${p.rooms} rooms per property</div>

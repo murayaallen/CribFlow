@@ -374,6 +374,7 @@ h6 { font-size: var(--text-base); font-weight: 600; line-height: 1.4; }
   display: flex;
   gap: var(--space-3);
   align-items: center;
+  flex-wrap: wrap;
 }
 
 /* Section spacing */
