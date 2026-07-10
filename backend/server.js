@@ -69,6 +69,11 @@ app.get('/', (req, res) => {
 
 // ---- ROUTES ----
 app.use('/api/mpesa', mpesaRoutes);
+// Safaricom rejects callback URLs containing the word "mpesa", so the C2B
+// validation/confirmation callbacks are ALSO served here (same router) under a
+// safe path. Register these (/api/c2b/confirmation, /api/c2b/validation) with
+// Daraja; the app's own connect/status calls keep using /api/mpesa.
+app.use('/api/c2b', mpesaRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/jobs', jobRoutes);
 
