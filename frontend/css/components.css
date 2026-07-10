@@ -221,6 +221,38 @@
 }
 
 /* =============================================================================
+   LIQUID-GLASS DASHBOARD — apartment backdrop + frosted surfaces (scoped .app-bg)
+   ============================================================================= */
+.app-bg .main {
+  background:
+    linear-gradient(rgba(250,250,246,0.90), rgba(250,250,246,0.94)),
+    url('/images/site/interior-living.jpg') center / cover fixed;
+}
+[data-theme="dark"] .app-bg .main {
+  background:
+    linear-gradient(rgba(14,15,13,0.90), rgba(14,15,13,0.95)),
+    url('/images/site/tower-night.jpg') center / cover fixed;
+}
+/* Frost the cards & stat tiles so the backdrop shows through */
+.app-bg .card-elevated,
+.app-bg .stat-card {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.app-bg .card-header,
+.app-bg .card-footer { background: transparent; }
+/* keep the M-Pesa unmatched alert + chart tiles legible over glass */
+.app-bg .stat-card::before { opacity: 0.6; }
+
+@media (max-width: 768px) {
+  /* fixed backgrounds are janky on mobile — let it scroll */
+  .app-bg .main { background-attachment: scroll; }
+}
+
+/* =============================================================================
    STAT CARD
    ============================================================================= */
 .stat-card {
